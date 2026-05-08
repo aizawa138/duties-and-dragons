@@ -3,7 +3,7 @@ import Logo from "../logo/Logo";
 
 export default function Header() {
   return (
-    <header className="flex justify-end items-center p-4 bg-state-900 text-white bg-primary">
+    <header className="sticky top-0 flex justify-end items-center p-4 bg-state-900 text-white bg-primary h-16">
       <div className="flex-1"></div>
       <div className="flex-1 text-center font-bold">
         <Logo />
