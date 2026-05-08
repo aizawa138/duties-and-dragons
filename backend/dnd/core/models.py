@@ -1,11 +1,12 @@
 from unittest.util import _MAX_LENGTH
 from django.db import models
+from django.utils import timezone
+
 
 # Create your models here.
-
-
 class Users(models.Model):
     user_id = models.AutoField(primary_key=True)
+    password = models.CharField(max_length=64, default=None)
     # Stats
     strength = models.FloatField()
     inteligence = models.FloatField()
@@ -52,3 +53,4 @@ class Duties(models.Model):
     intelligence = models.FloatField(default=0.0)
     charisma = models.FloatField(default=0.0)
     status = models.CharField(max_length=64, default="Active") # Active, Completed, Used
+    deadline = models.DateTimeField(default=timezone.now)
