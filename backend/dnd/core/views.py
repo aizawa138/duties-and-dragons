@@ -21,7 +21,7 @@ from google import genai
 def custom_auth_required(func):
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        user_id = Users.objects.filter(username=request.session.get("username")).first()
+        user_id = request.session.get("user_id")
         if not user_id:
             return Response({"error": "Unauthorized1"}, status=401)
         try:

@@ -24,6 +24,8 @@ export default function Leaderboard() {
 
         <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-900/80 p-2">
           <span className="font-semibold text-sm text-accent">3</span>
+
+          
           <span className="font-medium text-accent text-xs">Name_3</span>
         </div>
       </div>
