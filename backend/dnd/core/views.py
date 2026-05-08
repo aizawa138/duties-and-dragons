@@ -40,14 +40,14 @@ def register_user(request):
         )
 
     # check duplicate username
-    if User.objects.filter(username=username).exists():
+    if Users.objects.filter(username=username).exists():
         return Response(
             {"error": "Username already exists"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     # create user
-    user = User.objects.create(
+    user = Users.objects.create(
         username=username,
         password=make_password(password)
     )
