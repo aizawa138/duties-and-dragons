@@ -52,6 +52,8 @@ def register_user(request):
         password=make_password(password)
     )
 
+    user.save()
+
     return Response({
         "message": "User created",
         "username": user.username
