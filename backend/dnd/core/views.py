@@ -6,14 +6,12 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
-from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
-from django.contrib.auth import authenticate, login, logout
-from .models import Users
+from django.contrib.auth import logout
+from .models import Users, Bosses, CurrentFight, Duties, Habits
+import os
 
 #AI import
 from google import genai
@@ -113,6 +111,19 @@ def logout_user(request):
         "message": "Logout successful"
     })
 
+# @api_view(['POST'])
+# @custom_auth_required
+# def reset_habits(request):
+#     updated = Habits.objects.filter(
+#         user_id=request.custom_user,
+#         status="Completed"
+#     ).update(status="Active")
+
+#     return Response({
+#         "message": "Habits reset to Active",
+#         "reset_count": updated
+#     })
+
 @api_view(['POST'])
 @custom_auth_required
 def choose_class(request):
@@ -162,9 +173,10 @@ def choose_class(request):
         "class": user.user_class
     })
 
+@api_view(['GET'])
 def test_ai(request):
     try:
-        client = genai.Client()
+        client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         response = client.models.generate_content(
             model="gemini-2.0-flash",
             contents="Explain how AI works in a few words",
@@ -177,3 +189,79 @@ def test_ai(request):
         return JsonResponse({
             "error": f"AI test failed: {str(e)}"
         }, status=500)
+    
+@api_view(["POST"])
+@custom_auth_required
+def create_duty(request):
+    user_id = request.session['user_id']
+    description = request.data.get("description")
+    strength = 0.0 #request.data.get("strength", 0.0)
+    intelligence = 0.0 #request.data.get("intelligence", 0.0)
+    charisma = 0.0 #request.data.get("charisma", 0.0)
+    deadline = request.data.get("deadline")
+
+    if not description or not deadline:
+        return Response({"error": "Missing fields"}, status=400)
+
+    duty = Duties.objects.create(
+        user_id=user_id,
+        description=description,
+        strength=strength,
+        intelligence=intelligence,
+        charisma=charisma,
+        deadline=deadline
+    )
+
+    return Response({
+        "message": "Duty created",
+        "duty_id": duty.duty_id,
+    })
+
+@api_view(["POST"])
+@custom_auth_required
+def create_habit(request):
+    user_id = request.session['user_id']
+    description = request.data.get("description")
+    strength = 0.0 #request.data.get("strength", 0.0)
+    intelligence = 0.0 #request.data.get("intelligence", 0.0)
+    charisma = 0.0 #request.data.get("charisma", 0.0)
+
+    if not description:
+        return Response({"error": "Missing fields"}, status=400)
+
+    habit = Habits.objects.create(
+        user_id=user_id,
+        description=description,
+        strength=strength,
+        intelligence=intelligence,
+        charisma=charisma,
+    )
+
+    return Response({
+        "message": "Habit created",
+        "habit_id": habit.habit_id,
+    })
+
+@api_view(["POST"])
+@custom_auth_required
+def update_duty_status(request, duty_id):
+    user = request.session['user_id']
+    new_status = request.data.get("status")
+
+    if new_status not in ["Active", "Completed", "Used"]:
+        return Response({"error": "Invalid status"}, status=400)
+
+    try:
+        duty = Duties.objects.get(duty_id=duty_id, user_id=user)
+    except Duties.DoesNotExist:
+        return Response({"error": "Duty not found"}, status=404)
+
+    duty.status = new_status
+    duty.save()
+
+    return Response({
+        "message": "Duty status updated",
+        "duty_id": duty.duty_id,
+        "new_status": duty.status
+    })
+
