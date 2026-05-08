@@ -14,6 +14,9 @@ from rest_framework.decorators import permission_classes
 from django.contrib.auth import authenticate, login, logout
 from .models import Users
 
+#AI import
+from google import genai
+
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
@@ -78,6 +81,15 @@ def login_user(request):
     })
 
 @api_view(['POST'])
+def logout_user(request):
+
+    logout(request)
+
+    return Response({
+        "message": "Logout successful"
+    })
+
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def choose_class(request):
 
@@ -126,3 +138,16 @@ def choose_class(request):
         "message": "Class selected",
         "class": user.user_class
     })
+
+def test_ai(request):
+    
+
+    client = genai.Client()
+
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents="Explain how AI works in a few words",
+    )
+
+    print(response.text)
+    return JsonResponse({"message": "AI test successful"})
