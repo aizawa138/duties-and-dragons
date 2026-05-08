@@ -26,7 +26,7 @@ def set_csrf_token(request):
 def register_user(request):
     data = request.data
 
-    username = data.get('username')
+    username = data.get('username') #test fail case
     password = data.get('password')
 
     # check missing fields
@@ -96,17 +96,20 @@ def choose_class(request):
 
     # starter stats depending on class
     if selected_class == "Berserker":
+        user.level = 0
         user.strength = 2
         user.inteligence = 1
         user.charisma = 1
         user.user_hp = 100
     elif selected_class == "Mage":
+        user.level = 0
         user.strength = 1
         user.inteligence = 2
         user.charisma = 1
         user.user_hp = 100
 
     elif selected_class == "Vampire":
+        user.level = 0
         user.strength = 1
         user.inteligence = 1
         user.charisma = 2
