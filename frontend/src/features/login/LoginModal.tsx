@@ -30,6 +30,7 @@ export default function AuthenticationModal({
         `${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/login/`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": csrfToken,
@@ -55,6 +56,7 @@ export default function AuthenticationModal({
         `${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/register/`,
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": csrfToken,
