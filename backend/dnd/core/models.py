@@ -53,8 +53,11 @@ class Duties(models.Model):
     strength = models.FloatField(default=0.0)
     intelligence = models.FloatField(default=0.0)
     charisma = models.FloatField(default=0.0)
-    status = models.CharField(max_length=64, default="Active") # Active, Completed, Used
+    status = models.CharField(
+        max_length=64, default="Active"
+    )  # Active, Completed, Used
     deadline = models.DateTimeField(default=timezone.now)
+
 
 class Habits(models.Model):
     habit_id = models.AutoField(primary_key=True)
@@ -65,9 +68,12 @@ class Habits(models.Model):
     strength = models.FloatField(default=0.0)
     intelligence = models.FloatField(default=0.0)
     charisma = models.FloatField(default=0.0)
-    status = models.CharField(max_length=64, default="Active") # Active, Completed
+    status = models.CharField(max_length=64, default="Active")  # Active, Completed
 
 
 class DailyResetState(models.Model):
     key = models.CharField(max_length=128, unique=True)
     last_reset_date = models.DateField()
+
+
+
