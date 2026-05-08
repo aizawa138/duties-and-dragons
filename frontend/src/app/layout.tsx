@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { alanSans } from "@/public/fonts";
+import { alikeAngular } from "@/public/fonts";
+import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -12,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${alanSans.className} h-full`}>
+    <html lang="en" className={`${alikeAngular.className} h-full`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
