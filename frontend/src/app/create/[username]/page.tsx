@@ -1,10 +1,39 @@
+"use client";
+
 import Card from "@/src/components/ui/card/card";
 import knight from "@/public/knight.png";
 import mage from "@/public/mage.png";
 import vampire from "@/public/vampire.png";
 import Header from "@/src/components/header/Header";
+import { Button } from "@/src/components/ui/button/button";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import getCookie from "@/lib/getCookie";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
+  const [role, setRole] = useState("");
+  const router = useRouter();
+
+  const handleClick = (value: string) => {
+    setRole(value);
+  };
+
+  const handleRoleClick = async () => {
+    const csrfToken = getCookie("csrftoken") ?? "";
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/choose_class/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({ user_class: role }),
+    });
+    router.push(`/dashboard/${username}`);
+  };
+
+  const pathname = usePathname();
+  const username = pathname.split("/")[2];
   return (
     <>
       <Header />
@@ -16,10 +45,30 @@ export default function Page() {
           <h1 className="text-3xl text-foreground mb-8 text-center font-bold">
             Which classes do you want to be?
           </h1>
-          <div className="flex gap-4">
-            <Card src={knight} role="Knight" />
-            <Card src={mage} role="Mage" />
-            <Card src={vampire} role="Vampire" />
+          <div className="flex gap-4 mb-4">
+            <Card
+              src={knight}
+              role="Knight"
+              onClick={handleClick}
+              isSelected={role === "Knight"}
+            />
+            <Card
+              src={mage}
+              role="Mage"
+              onClick={handleClick}
+              isSelected={role === "Mage"}
+            />
+            <Card
+              src={vampire}
+              role="Vampire"
+              onClick={handleClick}
+              isSelected={role === "Vampire"}
+            />
+          </div>
+          <div className="flex justify-end mr-4">
+            <Button variant="secondary" size="lg" onClick={handleRoleClick}>
+              Create
+            </Button>
           </div>
         </div>
       </div>
