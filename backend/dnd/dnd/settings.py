@@ -141,14 +141,14 @@ CORS_ALLOW_CREDENTIALS = True
 # If True, 'getCookie()' will return null
 CSRF_COOKIE_HTTPONLY = False
 
-# 5. Only set to True in Production with HTTPS
-CSRF_COOKIE_SECURE = False
-SESSION_COOKIE_SECURE = False
-
-# 7. Adjust Samesite for cross-domain cookies
-# 'Lax' is standard. Use 'None' only if domains are completely different
-# (e.g., api.com and frontend.com) and SECURE is True.
+# 6. Use SameSite=None for cross-origin frontend/backend requests.
+#    This requires secure cookies in modern browsers, but localhost is treated as secure.
+SESSION_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SAMESITE = "None"
+
+# 7. Since SameSite=None is used, set secure cookies.
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 # 8. If Django is behind a proxy (Render/Railway), preserve HTTPS info.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
