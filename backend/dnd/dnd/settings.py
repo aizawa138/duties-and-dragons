@@ -50,6 +50,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "core.middleware.DailyResetMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -130,6 +131,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://duties-and-dragons.onrender.com",
+    "https://duties-and-dragons-1gxp98t3d-daigo-kitagawas-projects.vercel.app/"
 ]
 
 # 3. Allow cookies/headers to be sent in the request
@@ -146,7 +148,7 @@ SESSION_COOKIE_SECURE = False
 # 7. Adjust Samesite for cross-domain cookies
 # 'Lax' is standard. Use 'None' only if domains are completely different
 # (e.g., api.com and frontend.com) and SECURE is True.
-CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "None"
 
 # 8. If Django is behind a proxy (Render/Railway), preserve HTTPS info.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

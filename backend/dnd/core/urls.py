@@ -7,6 +7,9 @@ urlpatterns = [
     path("api/login/", views.login_user, name="login_user"),
     path("api/logout/", views.logout_user, name="logout_user"),
     path("api/choose_class/", views.choose_class, name="choose_class"),
+    path("api/create_duty/", views.create_duty, name="create_duty"),
+    path("api/create_habit/", views.create_habit, name="create_habit"),
+    path("api/update_duty_status/", views.update_duty_status, name="update_duty_status"),
 ]
 
 # // Next.js side
