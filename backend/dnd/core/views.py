@@ -56,7 +56,8 @@ def register_user(request):
 
     return Response({
         "message": "User created",
-        "username": user.username
+        "username": user.username,
+        "has_class": bool(user.user_class)  # Check if user has chosen a class
     })
 
 @api_view(['POST'])
@@ -79,7 +80,8 @@ def login_user(request):
 
     return Response({
         "message": "Login successful",
-        "username": user.username
+        "username": user.username,
+        "has_class": bool(user.user_class)  # Check if user has chosen a class
     })
 
 @api_view(['POST'])
