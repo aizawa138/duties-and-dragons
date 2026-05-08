@@ -1,7 +1,7 @@
-import { Alan_Sans, Croissant_One } from "next/font/google";
+import { Alike_Angular, Croissant_One } from "next/font/google";
 
-export const alanSans = Alan_Sans({
-  subsets: ["latin"],
+export const alikeAngular = Alike_Angular({
+  subsets: ["latin-ext", "latin"],
   variable: "--font-alan-sans",
   weight: ["400"],
 });
