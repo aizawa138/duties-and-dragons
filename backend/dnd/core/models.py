@@ -6,6 +6,7 @@ from django.utils import timezone
 # Create your models here.
 class Users(models.Model):
     user_id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=64, default=None)
     # Stats
     strength = models.FloatField()
