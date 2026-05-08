@@ -13,8 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${alikeAngular.className} h-full`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`h-full`}>
+      <body className={`${alikeAngular.className} min-h-full flex flex-col`}>
+        {children}
+      </body>
     </html>
   );
 }
