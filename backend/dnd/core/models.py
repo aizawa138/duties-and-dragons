@@ -9,20 +9,20 @@ class Users(models.Model):
     username = models.CharField(max_length=100, unique=True, default=None, blank=False)
     password = models.CharField(max_length=64, default=None)
     # Stats
-    strength = models.FloatField()
-    inteligence = models.FloatField()
-    charisma = models.FloatField()
-    exp = models.FloatField()
-    level = models.IntegerField()
+    strength = models.FloatField(default=0.0)
+    inteligence = models.FloatField(default=0.0)
+    charisma = models.FloatField(default=0.0)
+    exp = models.FloatField(default=0.0)
+    level = models.IntegerField(default=0)
     user_class = models.CharField(max_length=64)
-    user_hp = models.IntegerField()
+    user_hp = models.IntegerField(default=100)
 
 
 class Bosses(models.Model):
     boss_id = models.AutoField(primary_key=True)
-    boss_hp = models.IntegerField()
-    weakness = models.CharField()
-    boss_name = models.CharField()
+    boss_hp = models.IntegerField(default=None)
+    weakness = models.CharField(max_length=100, default=None)
+    boss_name = models.CharField(max_length=100, default=None)
 
 
 class CurrentFight(models.Model):
@@ -41,7 +41,7 @@ class CurrentFight(models.Model):
         blank=False,
         null=False,
     )
-    seconds_left = models.IntegerField()
+    seconds_left = models.IntegerField(default=None)
 
 
 class Duties(models.Model):
@@ -49,7 +49,7 @@ class Duties(models.Model):
     user_id = models.ForeignKey(
         "Users", on_delete=models.CASCADE, related_name="duties", blank=False
     )
-    description = models.CharField(max_length=7000)
+    description = models.CharField(max_length=7000, default=None)
     strength = models.FloatField(default=0.0)
     intelligence = models.FloatField(default=0.0)
     charisma = models.FloatField(default=0.0)
