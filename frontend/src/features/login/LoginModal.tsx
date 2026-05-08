@@ -6,7 +6,7 @@ import { crossaintOne } from "@/public/fonts";
 import { useState } from "react";
 import getCookie from "@/lib/getCookie";
 import { initializeApp } from "@/lib/initializeApp";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 type AuthenticationType = {
   authenticationType: string;
@@ -42,7 +42,8 @@ export default function AuthenticationModal({
         return;
       }
 
-      const { registeredUsername, hasClass } = await response.json();
+      const { username: registeredUsername, has_class: hasClass } =
+        await response.json();
 
       if (hasClass) {
         router.push(`/dashboard/${registeredUsername}`);
@@ -66,7 +67,8 @@ export default function AuthenticationModal({
         return;
       }
 
-      const { registeredUsername, hasClass } = await response.json();
+      const { username: registeredUsername, has_class: hasClass } =
+        await response.json();
 
       if (hasClass) {
         router.push(`/dashboard/${registeredUsername}`);
