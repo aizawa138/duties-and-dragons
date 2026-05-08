@@ -4,6 +4,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/src/components/ui/button/button";
 import { crossaintOne } from "@/public/fonts";
 import { useState } from "react";
+import getCookie from "@/lib/getCookie";
+import { initializeApp } from "@/lib/initializeApp";
 
 type AuthenticationType = {
   authenticationType: string;
@@ -16,6 +18,32 @@ export default function AuthenticationModal({
 }: AuthenticationType) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  const handleClick = async () => {
+    await initializeApp();
+    const csrfToken = getCookie("csrftoken") ?? "";
+
+    if (authenticationType === "Login") {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ username, password }),
+      });
+    } else if (authenticationType === "Signup") {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/register/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({ username, password }),
+      });
+    }
+  };
+
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
@@ -54,7 +82,7 @@ export default function AuthenticationModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button variant={variant} size="default">
+            <Button variant={variant} size="default" onClick={handleClick}>
               {authenticationType}
             </Button>
           </div>
