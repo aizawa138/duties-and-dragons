@@ -3,8 +3,10 @@ import Header from "../components/header/Header";
 import MainInfo from "../components/landing-info/main-info";
 
 export default function Home() {
-  return <main>
-    <Header />
-    <MainInfo />
-  </main>;
+  return (
+    <main className="relative">
+      <Header />
+      <MainInfo />
+    </main>
+  );
 }
