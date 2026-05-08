@@ -14,6 +14,9 @@ from rest_framework.decorators import permission_classes
 from django.contrib.auth import authenticate, login, logout
 from .models import Users
 
+#AI import
+from google import genai
+
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
@@ -37,17 +40,19 @@ def register_user(request):
         )
 
     # check duplicate username
-    if User.objects.filter(username=username).exists():
+    if Users.objects.filter(username=username).exists():
         return Response(
             {"error": "Username already exists"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     # create user
-    user = User.objects.create(
+    user = Users.objects.create(
         username=username,
         password=make_password(password)
     )
+
+    user.save()
 
     return Response({
         "message": "User created",
@@ -75,6 +80,15 @@ def login_user(request):
     return Response({
         "message": "Login successful",
         "username": user.username
+    })
+
+@api_view(['POST'])
+def logout_user(request):
+
+    logout(request)
+
+    return Response({
+        "message": "Logout successful"
     })
 
 @api_view(['POST'])
@@ -126,3 +140,16 @@ def choose_class(request):
         "message": "Class selected",
         "class": user.user_class
     })
+
+def test_ai(request):
+    
+
+    client = genai.Client()
+
+    response = client.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents="Explain how AI works in a few words",
+    )
+
+    print(response.text)
+    return JsonResponse({"message": "AI test successful"})

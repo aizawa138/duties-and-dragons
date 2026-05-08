@@ -129,6 +129,7 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://duties-and-dragons.onrender.com",
 ]
 
 # 3. Allow cookies/headers to be sent in the request
@@ -142,7 +143,10 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
-# 6. Adjust Samesite for cross-domain cookies
+# 7. Adjust Samesite for cross-domain cookies
 # 'Lax' is standard. Use 'None' only if domains are completely different
 # (e.g., api.com and frontend.com) and SECURE is True.
 CSRF_COOKIE_SAMESITE = "Lax"
+
+# 8. If Django is behind a proxy (Render/Railway), preserve HTTPS info.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
