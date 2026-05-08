@@ -25,7 +25,7 @@ export default function AuthenticationModal({
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed backdrop-blur-xs inset-0" />
-        <Dialog.Content className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white rounded-2xl py-8 px-4 w-[27vw] h-[44vh] border border-gray-500">
+        <Dialog.Content className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-white rounded-2xl py-8 px-4 w-[90vw] max-w-md max-h-[90vh] overflow-y-auto border border-gray-500 sm:w-[70vw] lg:w-[40vw]">
           <Dialog.Title
             className={`${variant === "default" ? "text-primary" : "text-secondary"} text-3xl text-center font-semibold mb-4 ${crossaintOne.className}`}
           >
