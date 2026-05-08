@@ -4,9 +4,9 @@
   --color-background: hsl(0 0% 97%);
   --color-foreground: hsl(0 0% 16%);
 
-  --color-primary: hsl(214 75% 24%);
+  --color-primary: hsl(214 75% 14%);
   --color-primary-foreground: hsl(0 0% 97%);
-  --color-primary-hover: hsl(214 75% 14%);
+  --color-primary-hover: hsl(214 75% 34%);
 
   --color-secondary: hsl(217 34% 45%);
   --color-secondary-foreground: hsl(0 0% 97%);
