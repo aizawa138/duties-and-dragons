@@ -147,7 +147,7 @@ SESSION_COOKIE_SECURE = False
 # 7. Adjust Samesite for cross-domain cookies
 # 'Lax' is standard. Use 'None' only if domains are completely different
 # (e.g., api.com and frontend.com) and SECURE is True.
-CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "None"
 
 # 8. If Django is behind a proxy (Render/Railway), preserve HTTPS info.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
