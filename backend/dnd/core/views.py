@@ -23,11 +23,11 @@ def custom_auth_required(func):
     def wrapper(request, *args, **kwargs):
         user_id = Users.objects.filter(username=request.session.get("username")).first()
         if not user_id:
-            return Response({"error": "Unauthorized"}, status=401)
+            return Response({"error": "Unauthorized1"}, status=401)
         try:
             request.custom_user = Users.objects.get(user_id=user_id)
         except Users.DoesNotExist:
-            return Response({"error": "Unauthorized"}, status=401)
+            return Response({"error": "Unauthorized2"}, status=401)
         return func(request, *args, **kwargs)
 
     return wrapper
