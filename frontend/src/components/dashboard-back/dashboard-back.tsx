@@ -106,11 +106,15 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   );
   const [bossInfo] = useState<BossInfo | null>(null);
 
+  const [strength, setStrength] = useState(0);
+  const [intelligence, setIntelligence] = useState(0);
+  const [charisma, setCharisma] = useState(0);
+
   // 2. Create the attack logic
   const handleAttack = async () => {
     // Filter out completed duties (tasks), keep everything else
     const csrfToken = await initializeApp();
-    await fetch(backendUrl("/api/attack_boss/"), {
+    const response = await fetch(backendUrl("/api/attack_boss/"), {
       method: "POST",
       credentials: "include",
       headers: {
@@ -118,6 +122,10 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
         "X-CSRFToken": csrfToken,
       },
     });
+    const data = await response.json();
+    setStrength(data.stats.strength);
+    setIntelligence(data.stats.inteligence);
+    setCharisma(data.stats.charisma);
 
     setTasks((prev) => prev.filter((task) => !task.completed));
   };
@@ -141,6 +149,9 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
 
       const data = await response.json();
       setUserInfo(data);
+      setStrength(data.status.strength);
+      setIntelligence(data.status.intelligence);
+      setCharisma(data.status.charisma);
       setTasks(mapDuties(data.duties));
       setHabits(mapHabits(data.habits));
     };
@@ -157,9 +168,27 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
         <div className="grid grid-cols-7 gap-4 w-full h-full items-stretch">
           <div className="col-span-1">
             <PlayerStats
-              str={userInfo?.strength ? userInfo?.strength : 0}
-              int={userInfo?.intelligence ? userInfo?.intelligence : 0}
-              cha={userInfo?.charisma ? userInfo?.charisma : 0}
+              str={
+                strength === 0
+                  ? userInfo?.strength
+                    ? userInfo.strength
+                    : 0
+                  : strength
+              }
+              int={
+                intelligence === 0
+                  ? userInfo?.intelligence
+                    ? userInfo?.intelligence
+                    : 0
+                  : intelligence
+              }
+              cha={
+                charisma === 0
+                  ? userInfo?.charisma
+                    ? userInfo?.charisma
+                    : 0
+                  : charisma
+              }
               hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
             />
           </div>
