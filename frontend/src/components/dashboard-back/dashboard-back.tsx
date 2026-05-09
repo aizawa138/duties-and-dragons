@@ -23,7 +23,20 @@ interface ListItem {
   deadline?: string;
 }
 
-interface UserInfo {
+interface DashboardDuty {
+  duty_id: number;
+  description: string;
+  status: string;
+  deadline?: string;
+}
+
+interface DashboardHabit {
+  habit_id: number;
+  description: string;
+  status: string;
+}
+
+export interface DashboardUserInfo {
   user_id: number;
   username: string;
   user_class: string;
@@ -33,8 +46,8 @@ interface UserInfo {
   intelligence: number;
   charisma: number;
   user_hp: number;
-  duties: [];
-  habits: [];
+  duties: DashboardDuty[];
+  habits: DashboardHabit[];
   current_fight: null | BossInfo;
 }
 
@@ -46,11 +59,36 @@ interface BossInfo {
   current_boss_hp: number;
 }
 
-export default function DashboardBack() {
+type DashboardBackProps = {
+  initialUserInfo?: DashboardUserInfo;
+};
+
+const mapDuties = (duties: DashboardDuty[] = []): ListItem[] =>
+  duties.map((duty) => ({
+    id: duty.duty_id,
+    text: duty.description,
+    completed: duty.status === "Completed",
+    deadline: duty.deadline,
+  }));
+
+const mapHabits = (habits: DashboardHabit[] = []): ListItem[] =>
+  habits.map((habit) => ({
+    id: habit.habit_id,
+    text: habit.description,
+    completed: habit.status === "Completed",
+  }));
+
+export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   // 1. Move state here from Tabs.tsx
-  const [tasks, setTasks] = useState<ListItem[]>([]);
-  const [habits, setHabits] = useState<ListItem[]>([]);
-  const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined);
+  const [tasks, setTasks] = useState<ListItem[]>(() =>
+    mapDuties(initialUserInfo?.duties),
+  );
+  const [habits, setHabits] = useState<ListItem[]>(() =>
+    mapHabits(initialUserInfo?.habits),
+  );
+  const [userInfo, setUserInfo] = useState<DashboardUserInfo | undefined>(
+    initialUserInfo,
+  );
   const [bossInfo, setBossInfo] = useState<BossInfo | null>(null);
 
   // 2. Create the attack logic
@@ -61,10 +99,15 @@ export default function DashboardBack() {
   };
 
   useEffect(() => {
+    if (initialUserInfo) {
+      return;
+    }
+
     const fetchData = async () => {
       const response = await fetch(backendUrl("/api/get_user_info/"), {
         method: "GET",
         credentials: "include",
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -74,33 +117,11 @@ export default function DashboardBack() {
 
       const data = await response.json();
       setUserInfo(data);
-      setTasks(
-        (data.duties ?? []).map(
-          (duty: {
-            duty_id: number;
-            description: string;
-            status: string;
-            deadline?: string;
-          }) => ({
-            id: duty.duty_id,
-            text: duty.description,
-            completed: duty.status === "Completed",
-            deadline: duty.deadline,
-          }),
-        ),
-      );
-      setHabits(
-        (data.habits ?? []).map(
-          (habit: { habit_id: number; description: string; status: string }) => ({
-            id: habit.habit_id,
-            text: habit.description,
-            completed: habit.status === "Completed",
-          }),
-        ),
-      );
+      setTasks(mapDuties(data.duties));
+      setHabits(mapHabits(data.habits));
     };
     fetchData();
-  }, []);
+  }, [initialUserInfo]);
 
   return (
     <div
