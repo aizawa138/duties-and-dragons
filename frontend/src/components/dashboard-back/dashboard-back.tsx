@@ -34,8 +34,11 @@ export default function DashboardBack() {
             
             <div className="w-3/4 min-h-screen border-r border-l border-slate-800 bg-slate-950/40 backdrop-blur-md shadow-2xl p-10">
                 <div className="grid grid-cols-7 gap-10 w-full h-full items-stretch">
-                    <div className="col-span-3">
-                        <Player />
+                    <div className="col-span-1">
+                        <Player s="some stats."/>
+                    </div>
+                    <div className="col-span-2">
+                        <Player s="a Player image."/>
                     </div>
                     
                     <div className="col-span-1">
@@ -43,8 +46,12 @@ export default function DashboardBack() {
                         <AttackButton onAttack={handleAttack} />
                     </div>
 
-                    <div className="col-span-3">
-                        <Enemy />
+                    <div className="col-span-2">
+                        <Enemy s="an Enemy image."/>
+                    </div>
+
+                    <div className="col-span-1">
+                        <Enemy s="some stats."/>
                     </div>
 
                     <div className="col-span-5">
