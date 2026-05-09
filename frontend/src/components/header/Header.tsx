@@ -18,20 +18,29 @@ type HeaderProps = {
 };
 
 async function fetchAuthUser(): Promise<AuthUser | null> {
-  const response = await fetch(backendUrl("/api/get_user_info/"), {
-    method: "GET",
-    credentials: "include",
-  });
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 4000);
 
-  if (!response.ok) {
-    return null;
+  try {
+    const response = await fetch(backendUrl("/api/get_user_info/"), {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      username: data.username,
+      has_class: data.has_class,
+    };
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-
-  const data = await response.json();
-  return {
-    username: data.username,
-    has_class: data.has_class,
-  };
 }
 
 export default function Header({ initialAuthUser = null }: HeaderProps) {
@@ -112,31 +121,33 @@ export default function Header({ initialAuthUser = null }: HeaderProps) {
       <div className="flex-1 text-center font-bold">
         <Logo href={logoHref} />
       </div>
-      <div className="flex flex-1 items-center justify-end gap-2">
-        {!isCheckingAuth &&
-          (authUser ? (
-            <Button
+      <div
+        className="flex flex-1 items-center justify-end gap-2"
+        aria-busy={isCheckingAuth}
+      >
+        {authUser ? (
+          <Button
+            variant="secondary"
+            size="default"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? "Logging out..." : "Logout"}
+          </Button>
+        ) : (
+          <>
+            <LoginModal
+              authenticationType="Login"
+              variant="default"
+              onAuthenticated={refreshAuth}
+            />
+            <LoginModal
+              authenticationType="Signup"
               variant="secondary"
-              size="default"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? "Logging out..." : "Logout"}
-            </Button>
-          ) : (
-            <>
-              <LoginModal
-                authenticationType="Login"
-                variant="default"
-                onAuthenticated={refreshAuth}
-              />
-              <LoginModal
-                authenticationType="Signup"
-                variant="secondary"
-                onAuthenticated={refreshAuth}
-              />
-            </>
-          ))}
+              onAuthenticated={refreshAuth}
+            />
+          </>
+        )}
       </div>
     </header>
   );
