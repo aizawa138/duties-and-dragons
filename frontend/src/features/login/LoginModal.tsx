@@ -7,6 +7,7 @@ import { useState } from "react";
 import getCookie from "@/lib/getCookie";
 import { initializeApp } from "@/lib/initializeApp";
 import { useRouter } from "next/navigation";
+import backendUrl from "@/lib/backendUrl";
 
 type AuthenticationType = {
   authenticationType: string;
@@ -27,7 +28,7 @@ export default function AuthenticationModal({
 
     if (authenticationType === "Login") {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/login/`,
+        backendUrl("/api/login/"),
         {
           method: "POST",
           credentials: "include",
@@ -53,7 +54,7 @@ export default function AuthenticationModal({
       }
     } else if (authenticationType === "Signup") {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/register/`,
+        backendUrl("/api/register/"),
         {
           method: "POST",
           credentials: "include",

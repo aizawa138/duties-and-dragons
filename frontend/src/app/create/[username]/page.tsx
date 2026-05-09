@@ -11,6 +11,7 @@ import { useState } from "react";
 import getCookie from "@/lib/getCookie";
 import { useRouter } from "next/navigation";
 import { initializeApp } from "@/lib/initializeApp";
+import backendUrl from "@/lib/backendUrl";
 
 export default function Page() {
   const [role, setRole] = useState("");
@@ -26,18 +27,15 @@ export default function Page() {
   const handleRoleClick = async () => {
     await initializeApp();
     const csrfToken = getCookie("csrftoken") ?? "";
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL!}/api/choose_class/`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ user_class: role }),
+    const response = await fetch(backendUrl("/api/choose_class/"), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
       },
-    );
+      body: JSON.stringify({ user_class: role }),
+    });
 
     if (!response.ok) {
       return;
