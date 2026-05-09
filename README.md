@@ -17,7 +17,7 @@ A dark fantasy-themed task manager where users complete daily tasks to weaken an
 
 **Complete Tasks:** Mark tasks as done to deal damage to the boss.
 
-**Defeat the Boss:** Watch the boss's health bar deplete as you conquer your to-do list!
+**Defeat the Boss:** Watch the boss's health bar deplete as you conquer your to-do list!!
 
 
 
