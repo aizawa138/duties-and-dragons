@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import Bosses, CurrentFight, Duties, Users
+from .services.fight_service import ensure_current_fight
 
 
 class AuthFlowTests(TestCase):
@@ -82,8 +84,8 @@ class BossAttackTests(TestCase):
         self.assertEqual(response.json()["boss_hp"], 0)
         self.assertTrue(response.json()["boss_defeated"])
 
-        boss.refresh_from_db()
-        self.assertEqual(boss.boss_hp, 0)
+        current_fight = CurrentFight.objects.get(user_id=user)
+        self.assertEqual(current_fight.current_boss_hp, 0)
         self.assertEqual(
             Duties.objects.get(description="finish report").status,
             "Used",
@@ -92,3 +94,45 @@ class BossAttackTests(TestCase):
             Duties.objects.get(description="still pending").status,
             "Active",
         )
+
+
+class FightRotationTests(TestCase):
+    def test_expired_fight_rotates_to_next_boss_with_new_weekly_timer(self):
+        user = Users.objects.create(
+            username="weekly-fighter",
+            password="secret",
+            user_class="Knight",
+        )
+        boss_1 = Bosses.objects.create(
+            boss_id=1,
+            boss_hp=10,
+            weakness="strength",
+            boss_name="Boss One",
+        )
+        boss_2 = Bosses.objects.create(
+            boss_id=2,
+            boss_hp=20,
+            weakness="intelligence",
+            boss_name="Boss Two",
+        )
+        Bosses.objects.create(
+            boss_id=3,
+            boss_hp=30,
+            weakness="charisma",
+            boss_name="Boss Three",
+        )
+        expired_fight = CurrentFight.objects.create(
+            user_id=user,
+            boss_id=boss_1,
+            current_boss_hp=3,
+            seconds_left=0,
+            started_at=timezone.now() - timezone.timedelta(days=8),
+            ends_at=timezone.now() - timezone.timedelta(seconds=1),
+        )
+
+        current_fight = ensure_current_fight(user)
+
+        self.assertNotEqual(current_fight.fight_id, expired_fight.fight_id)
+        self.assertEqual(current_fight.boss_id, boss_2)
+        self.assertEqual(current_fight.current_boss_hp, boss_2.boss_hp)
+        self.assertGreater(current_fight.seconds_left, 0)

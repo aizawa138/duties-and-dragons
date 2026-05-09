@@ -3,6 +3,10 @@ from django.db import models
 from django.utils import timezone
 
 
+def default_fight_ends_at():
+    return timezone.now() + timezone.timedelta(days=7)
+
+
 # Create your models here.
 class Users(models.Model):
     user_id = models.AutoField(primary_key=True)
@@ -43,6 +47,8 @@ class CurrentFight(models.Model):
     )
     seconds_left = models.IntegerField(default=None)
     current_boss_hp = models.IntegerField(default=None)
+    started_at = models.DateTimeField(default=timezone.now)
+    ends_at = models.DateTimeField(default=default_fight_ends_at)
 
 
 class Duties(models.Model):
@@ -75,5 +81,4 @@ class Habits(models.Model):
 class DailyResetState(models.Model):
     key = models.CharField(max_length=128, unique=True)
     last_reset_date = models.DateField()
-
 
