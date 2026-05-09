@@ -19,6 +19,9 @@ import EnemyStats from "../stats_display/e-stats-display";
 interface ListItem {
   id: number;
   text: string;
+  strength: number;
+  intelligence: number;
+  charisma: number;
   completed: boolean;
   deadline?: string;
 }
@@ -70,11 +73,17 @@ export default function DashboardBack() {
           (duty: {
             duty_id: number;
             description: string;
+            strength: number;
+            intelligence: number;
+            charisma: number;
             status: string;
             deadline?: string;
           }) => ({
             id: duty.duty_id,
             text: duty.description,
+            strength: duty.strength,
+            intelligence: duty.intelligence,
+            charisma: duty.charisma,
             completed: duty.status === "Completed",
             deadline: duty.deadline,
           }),
@@ -82,9 +91,19 @@ export default function DashboardBack() {
       );
       setHabits(
         (data.habits ?? []).map(
-          (habit: { habit_id: number; description: string; status: string }) => ({
+          (habit: {
+            habit_id: number;
+            description: string;
+            strength: number;
+            intelligence: number;
+            charisma: number;
+            status: string;
+          }) => ({
             id: habit.habit_id,
             text: habit.description,
+            strength: habit.strength,
+            intelligence: habit.intelligence,
+            charisma: habit.charisma,
             completed: habit.status === "Completed",
           }),
         ),
