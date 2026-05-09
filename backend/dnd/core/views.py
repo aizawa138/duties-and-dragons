@@ -443,10 +443,6 @@ def create_habit(request):
 @custom_auth_required
 def update_duty_status(request, duty_id):
     user = request.custom_user
-    new_status = request.data.get("status")
-
-    if new_status not in ["Active", "Completed"]:
-        return Response({"error": "Invalid status"}, status=400)
     try:
         duty = Duties.objects.get(duty_id=duty_id, user_id=user)
         if duty.status == "Completed":
@@ -470,10 +466,6 @@ def update_duty_status(request, duty_id):
 @custom_auth_required
 def update_habit_status(request, habit_id):
     user = request.custom_user
-    new_status = request.data.get("status")
-
-    if new_status not in ["Active", "Completed"]:
-        return Response({"error": "Invalid status"}, status=400)
     try:
         habit = Habits.objects.get(habit_id=habit_id, user_id=user)
         if habit.status == "Completed":
