@@ -154,7 +154,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             />
           </div>
           <div className="col-span-2">
-            <Player s={userInfo?.user_class ? userInfo?.user_class : ""} />
+            <Player classname={userInfo?.user_class ? userInfo?.user_class : ""} username={userInfo?.username ? userInfo?.username : "Player"} />
           </div>
 
           <div className="flex items-center col-span-1 align-middle">
