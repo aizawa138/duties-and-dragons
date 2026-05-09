@@ -522,6 +522,7 @@ def get_user_info(request):
             "duties": list(duties),
             "habits": list(habits),
             "current_fight": current_fight,
+            "boss_hp": current_fight.get("boss_hp", 100),
         }
     )
 
