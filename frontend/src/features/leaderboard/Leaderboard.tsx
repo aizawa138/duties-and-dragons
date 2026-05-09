@@ -10,13 +10,29 @@ type RankingData = {
   exp: number;
 };
 
+type LeaderboardResponse = {
+  leaderboard?: RankingData[];
+};
+
 export default function Leaderboard() {
-  const [rankingData, setRankingData] = useState<RankingData[] | null>(null);
+  const [rankingData, setRankingData] = useState<RankingData[]>([]);
+
   useEffect(() => {
     const handleLeaderboard = async () => {
-      const response = await fetch(backendUrl("/api/leaderboard"));
-      const data = await response.json();
-      setRankingData(data);
+      try {
+        const response = await fetch(backendUrl("/api/leaderboard/"));
+
+        if (!response.ok) {
+          setRankingData([]);
+          return;
+        }
+
+        const data = (await response.json()) as LeaderboardResponse;
+        setRankingData(Array.isArray(data.leaderboard) ? data.leaderboard : []);
+      } catch (error) {
+        console.error("Failed to fetch leaderboard", error);
+        setRankingData([]);
+      }
     };
     handleLeaderboard();
   }, []);
@@ -43,9 +59,9 @@ export default function Leaderboard() {
           </span>
         </div>
 
-        {rankingData!.map((data, i) => (
+        {rankingData.map((data, i) => (
           <div
-            key={i}
+            key={data.username}
             className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-900/80 p-2"
           >
             <span className="font-semibold text-sm text-accent">{i + 1}</span>
