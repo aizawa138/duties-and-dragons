@@ -589,6 +589,8 @@ def setup_fight(request):
 def attack_boss(request):
 
     user = request.custom_user
+    user_id = request.session.get("user_id")
+    current_user = Users.objects.get(user_id=user_id)
 
     try:
         current_fight = ensure_current_fight(user)
@@ -596,6 +598,20 @@ def attack_boss(request):
         return Response({"error": "No current fight"}, status=400)
 
     user = _populate_completed_stats(user)
+    weakness_multiplier = 1.25
+    if current_user.user_class == "Mage" and current_fight.boss_id.weakness == "intelligence":
+        weakness_multiplier = 1.5
+    elif current_user.user_class == "Knight" and current_fight.boss_id.weakness == "strength":
+        weakness_multiplier = 1.5
+    elif current_user.user_class == "Vampire" and current_fight.boss_id.weakness == "charisma":
+        weakness_multiplier = 1.5
+    
+    if current_fight.boss_id.weakness == "strength":
+        user.total_strength *= weakness_multiplier
+    elif current_fight.boss_id.weakness == "intelligence":
+        user.total_intelligence *= weakness_multiplier
+    elif current_fight.boss_id.weakness == "charisma":
+        user.total_charisma *= weakness_multiplier
 
     damage = (
         user.total_strength * (1 + user.strength / 100)
@@ -632,7 +648,7 @@ def attack_boss(request):
         "boss_hp": boss_hp,
         "stats": {
             "strength": user.strength,
-            "inteligence": user.inteligence,
+            "intelligence": user.inteligence,
             "charisma": user.charisma,
         },
         "boss_defeated": _is_boss_defeated(boss_hp),

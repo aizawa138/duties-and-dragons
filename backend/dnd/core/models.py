@@ -24,9 +24,9 @@ class Users(models.Model):
 
 class Bosses(models.Model):
     boss_id = models.AutoField(primary_key=True)
-    boss_hp = models.IntegerField(default=None)
-    weakness = models.CharField(max_length=100, default=None)
-    boss_name = models.CharField(max_length=100, default=None)
+    boss_hp = models.IntegerField(default=None, default=100)
+    weakness = models.CharField(max_length=100, default = "strength")
+    boss_name = models.CharField(max_length=100, default="Nidhogg")
 
 
 class CurrentFight(models.Model):
