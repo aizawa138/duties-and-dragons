@@ -53,6 +53,34 @@ def _is_boss_defeated(boss_hp):
     return boss_hp <= 0
 
 
+def _populate_completed_stats(user):
+    """Attach completed stat totals from duties and habits onto the user."""
+    completed_duties = Duties.objects.filter(user_id=user, status="Completed")
+    completed_habits = Habits.objects.filter(user_id=user, status="Completed")
+
+    total_strength = (
+        completed_duties.aggregate(Sum("strength"))["strength__sum"] or 0
+    ) + (
+        completed_habits.aggregate(Sum("strength"))["strength__sum"] or 0
+    )
+    total_intelligence = (
+        completed_duties.aggregate(Sum("intelligence"))["intelligence__sum"] or 0
+    ) + (
+        completed_habits.aggregate(Sum("intelligence"))["intelligence__sum"] or 0
+    )
+    total_charisma = (
+        completed_duties.aggregate(Sum("charisma"))["charisma__sum"] or 0
+    ) + (
+        completed_habits.aggregate(Sum("charisma"))["charisma__sum"] or 0
+    )
+
+    user.total_strength = total_strength
+    user.total_intelligence = total_intelligence
+    user.total_charisma = total_charisma
+
+    return user
+
+
 # Custom authentication decorator for custom Users model
 def custom_auth_required(func):
     @wraps(func)
@@ -108,6 +136,57 @@ def set_csrf_token(request):
 
 @api_view(["POST"])
 def register_user(request):
+    data = request.data
+
+    username = data.get("username")  # test fail case
+    password = data.get("password")
+
+    # check missing fields
+    if not username or not password:
+        return Response({"error": "Missing fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # check duplicate username
+    if Users.objects.filter(username=username).exists():
+        return Response(
+            {"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # create user with default class
+    user = Users.objects.create(
+        username=username,
+        password=make_password(password),
+        user_class="",  # Default empty class until user selects one
+    )
+    user.save()
+
+    # Keep signup and login behavior aligned so authenticated setup pages work.
+    request.session["user_id"] = user.user_id
+    request.session.save()
+
+    boss_id = 1
+
+    if CurrentFight.objects.filter(user_id=user.user_id).exists():
+        return Response({"error": "Already in a fight"}, status=400)
+
+    try:
+        boss = Bosses.objects.get(boss_id=boss_id)
+    except Bosses.DoesNotExist:
+        return Response({"error": "Boss not found"}, status=404)
+
+    current_fight = create_current_fight(user=user, boss=boss)
+
+    return Response(
+        {
+            "message": "Fight started",
+            "fight_id": current_fight.fight_id,
+            "boss_id": boss.boss_id,
+            "boss_name": boss.boss_name,
+            "base_boss_hp": boss.boss_hp,
+            "boss_hp": current_fight.current_boss_hp,
+            "seconds_left": current_fight.seconds_left,
+            "ends_at": current_fight.ends_at,
+        }
+    )
     data = request.data
 
     username = data.get("username")  # test fail case
@@ -281,19 +360,20 @@ def get_task_rewards(request):
 @api_view(["POST"])
 @custom_auth_required
 def create_duty(request):
-    user_id = request.session["user_id"]
+    user = request.custom_user
     description = request.data.get("description")
-    rewards = _get_task_rewards(user_id,description)
-    strength = rewards.get("strength", 0.0)
-    intelligence = rewards.get("intelligence", 0.0)
-    charisma = rewards.get("charisma", 0.0)
+    rewards = _get_task_rewards(user.user_id, description)
+    stats = rewards.get("stats", {})
+    strength = stats.get("strength", 0.0)
+    intelligence = stats.get("intelligence", 0.0)
+    charisma = stats.get("charisma", 0.0)
     deadline = request.data.get("deadline")
 
     if not description or not deadline:
         return Response({"error": "Missing fields"}, status=400)
 
     duty = Duties.objects.create(
-        user_id=user_id,
+        user_id=user,
         description=description,
         strength=strength,
         intelligence=intelligence,
@@ -317,18 +397,19 @@ def create_duty(request):
 @api_view(["POST"])
 @custom_auth_required
 def create_habit(request):
-    user_id = request.session["user_id"]
+    user = request.custom_user
     description = request.data.get("description")
-    rewards = _get_task_rewards(user_id, description)
-    strength = rewards.get("strength", 0.0)
-    intelligence = rewards.get("intelligence", 0.0)
-    charisma = rewards.get("charisma", 0.0)
+    rewards = _get_task_rewards(user.user_id, description)
+    stats = rewards.get("stats", {})
+    strength = stats.get("strength", 0.0)
+    intelligence = stats.get("intelligence", 0.0)
+    charisma = stats.get("charisma", 0.0)
 
     if not description:
         return Response({"error": "Missing fields"}, status=400)
 
     habit = Habits.objects.create(
-        user_id=user_id,
+        user_id=user,
         description=description,
         strength=strength,
         intelligence=intelligence,
@@ -351,7 +432,7 @@ def create_habit(request):
 @api_view(["POST"])
 @custom_auth_required
 def update_duty_status(request, duty_id):
-    user = request.session["user_id"]
+    user = request.custom_user
     new_status = request.data.get("status")
 
     if new_status not in ["Active", "Completed", "Used"]:
@@ -370,6 +451,31 @@ def update_duty_status(request, duty_id):
             "message": "Duty status updated",
             "duty_id": duty.duty_id,
             "new_status": duty.status,
+        }
+    )
+
+@api_view(["POST"])
+@custom_auth_required
+def update_habit_status(request, habit_id):
+    user = request.custom_user
+    new_status = request.data.get("status")
+
+    if new_status not in ["Active", "Completed", "Used"]:
+        return Response({"error": "Invalid status"}, status=400)
+
+    try:
+        habit = Habits.objects.get(habit_id=habit_id, user_id=user)
+    except Habits.DoesNotExist:
+        return Response({"error": "Habit not found"}, status=404)
+
+    habit.status = new_status
+    habit.save()
+
+    return Response(
+        {
+            "message": "Habit status updated",
+            "habit_id": habit.habit_id,
+            "new_status": habit.status,
         }
     )
 
@@ -483,27 +589,12 @@ def attack_boss(request):
     except Bosses.DoesNotExist:
         return Response({"error": "No current fight"}, status=400)
 
-    completed_duties = Duties.objects.filter(
-        user_id=user,
-        status="Completed"
-    )
-
-    total_strength = completed_duties.aggregate(
-        Sum("strength")
-    )["strength__sum"] or 0
-
-    total_intelligence = completed_duties.aggregate(
-        Sum("intelligence")
-    )["intelligence__sum"] or 0
-
-    total_charisma = completed_duties.aggregate(
-        Sum("charisma")
-    )["charisma__sum"] or 0
+    user = _populate_completed_stats(user)
 
     damage = (
-        total_strength
-        + total_intelligence
-        + total_charisma
+        user.total_strength
+        + user.total_intelligence
+        + user.total_charisma
     )
 
     boss_hp = current_fight.current_boss_hp
@@ -519,6 +610,7 @@ def attack_boss(request):
     current_fight.save()
 
     completed_duties.update(status="Used")
+    completed_habits.update(status="Used")
 
     return Response({
         "attack_damage": damage,
