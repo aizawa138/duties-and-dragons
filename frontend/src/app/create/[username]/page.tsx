@@ -51,7 +51,7 @@ export default function Page() {
         <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,58,138,0.15),transparent)] pointer-events-none" />
         <div className="bg-background px-6 py-10 rounded-2xl border border-accent">
           <h1 className="text-3xl text-foreground mb-8 text-center font-bold">
-            Which classes do you want to be?
+            What class would you like to be?
           </h1>
           <div className="flex gap-4 mb-4">
             <Card
