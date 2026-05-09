@@ -13,6 +13,10 @@ type AuthUser = {
   has_class: boolean;
 };
 
+type HeaderProps = {
+  initialAuthUser?: AuthUser | null;
+};
+
 async function fetchAuthUser(): Promise<AuthUser | null> {
   const response = await fetch(backendUrl("/api/get_user_info/"), {
     method: "GET",
@@ -30,9 +34,9 @@ async function fetchAuthUser(): Promise<AuthUser | null> {
   };
 }
 
-export default function Header() {
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+export default function Header({ initialAuthUser = null }: HeaderProps) {
+  const [authUser, setAuthUser] = useState<AuthUser | null>(initialAuthUser);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(!initialAuthUser);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
 
