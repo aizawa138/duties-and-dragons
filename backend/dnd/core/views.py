@@ -16,6 +16,9 @@ import os
 # AI import
 from google import genai
 
+# api for stats
+from .services.ai_service import generate_task_rewards
+
 
 # Custom authentication decorator for custom Users model
 def custom_auth_required(func):
@@ -186,19 +189,24 @@ def choose_class(request):
     return Response({"message": "Class selected", "class": user.user_class})
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def test_ai(request):
+    task_description = request.query_params.get("task_description") or request.data.get(
+        "task_description"
+    )
+    boss_max_hp = request.query_params.get("boss_max_hp") or request.data.get(
+        "boss_max_hp"
+    )
+
+    if not task_description:
+        return Response({"error": "task_description is required"}, status=400)
+
     try:
-        client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents="Explain how AI works in a few words",
-        )
-        return JsonResponse(
-            {"message": "AI test successful", "response": response.text}
-        )
-    except Exception as e:
-        return JsonResponse({"error": f"AI test failed: {str(e)}"}, status=500)
+        rewards = generate_task_rewards(task_description, boss_max_hp)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=502)
+
+    return Response({"rewards": rewards})
 
 
 @api_view(["POST"])
