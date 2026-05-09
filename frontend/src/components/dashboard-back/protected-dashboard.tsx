@@ -82,9 +82,11 @@ export default function ProtectedDashboard({ username }: ProtectedDashboardProps
   }
 
   return (
-    <main className="relative">
-      <Header />
-      <DashboardBack initialUserInfo={userInfo} />
-    </main>
+    <>
+      <main className="relative">
+        <Header />
+        <DashboardBack initialUserInfo={userInfo} />
+      </main>
+    </>
   );
 }
