@@ -77,7 +77,7 @@ def _populate_completed_stats(user):
     user.total_strength = total_strength
     user.total_intelligence = total_intelligence
     user.total_charisma = total_charisma
-
+    
     return user
 
 
@@ -606,9 +606,9 @@ def attack_boss(request):
     user = _populate_completed_stats(user)
 
     damage = (
-        user.total_strength
-        + user.total_intelligence
-        + user.total_charisma
+        user.total_strength * (1 + user.strength / 100)
+        + user.total_intelligence * (1 + user.inteligence / 100)
+        + user.total_charisma * (1+ user.charisma / 100)
     )
 
     boss_hp = current_fight.current_boss_hp
@@ -616,20 +616,33 @@ def attack_boss(request):
         boss_hp = current_fight.boss_id.boss_hp
 
     boss_hp -= damage
-
     if boss_hp < 0:
         boss_hp = 0
 
     current_fight.current_boss_hp = boss_hp
     current_fight.save()
 
-    completed_duties.update(status="Used")
-    completed_habits.update(status="Used")
+    user.strength += user.total_strength
+    user.inteligence += user.total_intelligence
+    user.charisma += user.total_charisma
+    exp = user.exp + user.total_strength + user.total_intelligence + user.total_charisma
+    user.exp = exp
+    user.level = int(exp / 10)
+    user.save()
+
+
+    Duties.objects.filter(user_id=user, status="Completed").update(status="Used")
+    Habits.objects.filter(user_id=user, status="Completed").update(status="Used")
 
     return Response({
         "attack_damage": damage,
         "damage": damage,
         "boss_hp": boss_hp,
+        "stats": {
+            "strength": user.strength,
+            "inteligence": user.inteligence,
+            "charisma": user.charisma,
+        },
         "boss_defeated": _is_boss_defeated(boss_hp),
     })
 
