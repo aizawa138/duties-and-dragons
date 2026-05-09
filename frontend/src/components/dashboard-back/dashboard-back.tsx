@@ -13,6 +13,7 @@ import backendUrl from "@/lib/backendUrl";
 // import { usePathname } from "next/navigation";
 import PlayerStats from "../stats_display/p-stats-display";
 import EnemyStats from "../stats_display/e-stats-display";
+import { initializeApp } from "@/lib/initializeApp";
 
 // Define the type here so it's accessible
 interface ListItem {
@@ -103,15 +104,32 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   const [userInfo, setUserInfo] = useState<DashboardUserInfo | undefined>(
     initialUserInfo,
   );
-  const [bossInfo, setBossInfo] = useState<BossInfo | null>(null);
-  const [shake, setShake] = useState(false);
+  const [bossInfo] = useState<BossInfo | null>(null);
+
+  const [strength, setStrength] = useState(0);
+  const [intelligence, setIntelligence] = useState(0);
+  const [charisma, setCharisma] = useState(0);
 
   // 2. Create the attack logic
-  const handleAttack = () => {
+  const handleAttack = async () => {
     // Filter out completed duties (tasks), keep everything else
+    const csrfToken = await initializeApp();
+    const response = await fetch(backendUrl("/api/attack_boss/"), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+    });
+    const data = await response.json();
+    setStrength(data.stats.strength);
+    setIntelligence(data.stats.inteligence);
+    setCharisma(data.stats.charisma);
+
     setTasks((prev) => prev.filter((task) => !task.completed));
-    console.log("Attack! Completed duties cleared.");
     setShake(true);
+
   };
 
   useEffect(() => {
@@ -133,6 +151,9 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
 
       const data = await response.json();
       setUserInfo(data);
+      setStrength(data.status.strength);
+      setIntelligence(data.status.intelligence);
+      setCharisma(data.status.charisma);
       setTasks(mapDuties(data.duties));
       setHabits(mapHabits(data.habits));
     };
@@ -150,15 +171,36 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
         <div className="grid grid-cols-7 gap-4 w-full h-full items-stretch">
           <div className="col-span-1">
             <PlayerStats
-              str={userInfo?.strength ? userInfo?.strength : 0}
-              int={userInfo?.intelligence ? userInfo?.intelligence : 0}
-              cha={userInfo?.charisma ? userInfo?.charisma : 0}
+              str={
+                strength === 0
+                  ? userInfo?.strength
+                    ? userInfo.strength
+                    : 0
+                  : strength
+              }
+              int={
+                intelligence === 0
+                  ? userInfo?.intelligence
+                    ? userInfo?.intelligence
+                    : 0
+                  : intelligence
+              }
+              cha={
+                charisma === 0
+                  ? userInfo?.charisma
+                    ? userInfo?.charisma
+                    : 0
+                  : charisma
+              }
               hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
               level={userInfo?.level ? userInfo?.level : 1} 
             />
           </div>
           <div className="col-span-2">
-            <Player classname={userInfo?.user_class ? userInfo?.user_class : ""} username={userInfo?.username ? userInfo?.username : "Player"}/>
+            <Player
+              classname={userInfo?.user_class ? userInfo?.user_class : ""}
+              username={userInfo?.username ? userInfo?.username : "Player"}
+            />
           </div>
 
           <div className="flex items-center col-span-1 align-middle">
