@@ -5,7 +5,7 @@ import Logo from "../logo/Logo";
 import { Button } from "@/src/components/ui/button/button";
 import backendUrl from "@/lib/backendUrl";
 import { initializeApp } from "@/lib/initializeApp";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 type AuthUser = {
@@ -34,6 +34,7 @@ export default function Header() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const pathname = usePathname();
   const router = useRouter();
 
   const refreshAuth = useCallback(async () => {
@@ -96,11 +97,16 @@ export default function Header() {
     }
   };
 
+  const logoHref =
+    pathname === "/" && authUser
+      ? `/dashboard/${encodeURIComponent(authUser.username)}`
+      : "/";
+
   return (
     <header className="sticky top-0 z-50 flex justify-end items-center p-4 bg-state-900 text-white bg-primary h-16">
       <div className="flex-1"></div>
       <div className="flex-1 text-center font-bold">
-        <Logo />
+        <Logo href={logoHref} />
       </div>
       <div className="flex flex-1 items-center justify-end gap-2">
         {!isCheckingAuth &&
