@@ -34,6 +34,7 @@ export default function Tabs({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItemText, setNewItemText] = useState("");
   const [newItemDeadline, setNewItemDeadline] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -83,6 +84,7 @@ export default function Tabs({
 
     try {
       if (activeTab === "tasks") {
+        setIsLoading(true);
         const createdItem = await handleAIIntegration("/api/create_duty/", {
           description: newItemText,
           deadline: newItemDeadline,
@@ -98,8 +100,10 @@ export default function Tabs({
       setNewItemText("");
       setNewItemDeadline("");
       setIsModalOpen(false);
+      setIsLoading(false);
     } catch (error) {
       console.error("Failed to create item", error);
+      setIsLoading(false);
     }
   };
 
@@ -141,6 +145,33 @@ export default function Tabs({
 
   // --- NEW DELETE FUNCTION ---
   const deleteItem = (id: number) => {
+    if (activeTab === "tasks") {
+      const handleDutyClick = async () => {
+        const csrfToken = await initializeApp();
+        await fetch(backendUrl(`/api/remove_duty/${id}/`), {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+        });
+      };
+      handleDutyClick();
+    } else {
+      const handleHabitClick = async () => {
+        const csrfToken = await initializeApp();
+        await fetch(backendUrl(`/api/remove_habit/${id}/`), {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+        });
+      };
+      handleHabitClick();
+    }
     const setter = activeTab === "tasks" ? setTasks : setHabits;
     setter((prev) => prev.filter((item) => item.id !== id));
   };
@@ -322,9 +353,10 @@ export default function Tabs({
                   variant="default"
                   size="default"
                   onClick={handleAdd}
-                  disabled={!newItemText.trim()}
+                  disabled={!newItemText.trim() || isLoading}
                 >
-                  Save {activeTab === "tasks" ? "Duty" : "Habit"}
+                  {isLoading ? "Loading..." : "Save"}{" "}
+                  {!isLoading ? (activeTab === "tasks" ? "Duty" : "Habit") : ""}
                 </Button>
               </div>
             </Dialog.Content>

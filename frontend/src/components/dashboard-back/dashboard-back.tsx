@@ -163,7 +163,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     };
     fetchData();
   }, [initialUserInfo]);
-  console.log(bossHP)
+  console.log(bossInfo);
 
   return (
     <div
