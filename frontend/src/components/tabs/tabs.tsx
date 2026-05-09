@@ -70,12 +70,14 @@ export default function Tabs({
 
   const handleDutyClick = async (id: number) => {
     const csrfToken = await initializeApp();
-    const response = await fetch(backendUrl(`/api/update_duty_status/${id}`), {
+    const response = await fetch(backendUrl(`/api/update_duty_status/${id}/`), {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken,
       },
+      body: JSON.stringify({ status: "Active" }),
     });
     console.log(response);
   };
