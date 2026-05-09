@@ -76,6 +76,8 @@ export default function Page() {
               description="Enhances charisma, commanding respect and influence with a noble presence."
             />
           </div>
+
+          
           <div className="flex justify-end mr-4">
             <Button variant="secondary" size="lg" onClick={handleRoleClick}>
               Create
