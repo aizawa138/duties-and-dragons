@@ -166,6 +166,7 @@ export default function Tabs({
                   }`}
                 >
                   {item.text}
+                  <p>STR: {item.strength} INT: {item.intelligence} CHA: {item.charisma}</p>
                 </span>
                 {item.deadline && (
                   <span className="text-[10px] uppercase tracking-wider text-rose-400/80 font-medium">
