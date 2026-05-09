@@ -18,6 +18,7 @@ export default function AuthenticationModal({
   authenticationType,
   variant,
 }: AuthenticationType) {
+  const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -27,9 +28,9 @@ export default function AuthenticationModal({
     const csrfToken = getCookie("csrftoken") ?? "";
 
     if (authenticationType === "Login") {
-      const response = await fetch(
-        backendUrl("/api/login/"),
-        {
+      try {
+        setError("");
+        const response = await fetch(backendUrl("/api/login/"), {
           method: "POST",
           credentials: "include",
           headers: {
@@ -37,25 +38,28 @@ export default function AuthenticationModal({
             "X-CSRFToken": csrfToken,
           },
           body: JSON.stringify({ username, password }),
-        },
-      );
+        });
 
-      if (!response.ok) {
-        return;
-      }
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error);
+          return;
+        }
 
-      const { username: registeredUsername, has_class: hasClass } =
-        await response.json();
-
-      if (hasClass) {
-        router.push(`/dashboard/${registeredUsername}`);
-      } else {
-        router.push(`/create/${registeredUsername}`);
+        const { username: registeredUsername, has_class: hasClass } =
+          await response.json();
+        if (hasClass) {
+          router.push(`/dashboard/${registeredUsername}`);
+        } else {
+          router.push(`/create/${registeredUsername}`);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setError(message);
       }
     } else if (authenticationType === "Signup") {
-      const response = await fetch(
-        backendUrl("/api/register/"),
-        {
+      try {
+        const response = await fetch(backendUrl("/api/register/"), {
           method: "POST",
           credentials: "include",
           headers: {
@@ -63,20 +67,23 @@ export default function AuthenticationModal({
             "X-CSRFToken": csrfToken,
           },
           body: JSON.stringify({ username, password }),
-        },
-      );
+        });
 
-      if (!response.ok) {
-        return;
-      }
+        if (!response.ok) {
+          return;
+        }
 
-      const { username: registeredUsername, has_class: hasClass } =
-        await response.json();
+        const { username: registeredUsername, has_class: hasClass } =
+          await response.json();
 
-      if (hasClass) {
-        router.push(`/dashboard/${registeredUsername}`);
-      } else {
-        router.push(`/create/${registeredUsername}`);
+        if (hasClass) {
+          router.push(`/dashboard/${registeredUsername}`);
+        } else {
+          router.push(`/create/${registeredUsername}`);
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setError(message);
       }
     }
   };
@@ -100,6 +107,11 @@ export default function AuthenticationModal({
             Duties & Dragons is a free to start task management + gaming
             application!
           </Dialog.Description>
+          {error ? (
+            <p className="bg-red-400 rounded-xl py-1 px-4">{error}</p>
+          ) : (
+            ""
+          )}
           <div className="flex flex-col">
             <label htmlFor="username">Username</label>
             <input
