@@ -321,13 +321,19 @@ def update_duty_status(request, duty_id):
     )
 
 
-api_view(["POST"])
+@api_view(["GET"])
 @custom_auth_required
 def get_user_info(request):
     user = request.custom_user
     user_id = request.session.get("user_id")
     duties = Duties.objects.filter(user_id=user_id).values(
-        "duty_id", "description", "strength", "intelligence", "charisma", "status"
+        "duty_id",
+        "description",
+        "strength",
+        "intelligence",
+        "charisma",
+        "status",
+        "deadline",
     )
     habits = Habits.objects.filter(user_id=user_id).values(
         "habit_id", "description", "strength", "intelligence", "charisma", "status"

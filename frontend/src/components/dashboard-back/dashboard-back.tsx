@@ -8,9 +8,6 @@ import Tabs from "../tabs/tabs";
 import Leaderboard from "@/src/features/leaderboard/Leaderboard";
 import AttackButton from "../attack-button/attack-button";
 import backendUrl from "@/lib/backendUrl";
-import { initializeApp } from "@/lib/initializeApp";
-import getCookie from "@/lib/getCookie";
-import { usePathname } from "next/navigation";
 
 // Define the type here so it's accessible
 interface ListItem {
@@ -25,9 +22,6 @@ export default function DashboardBack() {
   const [tasks, setTasks] = useState<ListItem[]>([]);
   const [habits, setHabits] = useState<ListItem[]>([]);
 
-  const pathname = usePathname();
-  const username = pathname.split("/")[2];
-
   // 2. Create the attack logic
   const handleAttack = () => {
     // Filter out completed duties (tasks), keep everything else
@@ -37,22 +31,44 @@ export default function DashboardBack() {
 
   useEffect(() => {
     const fetchData = async () => {
-      await initializeApp();
-      const csrfToken = getCookie("csrftoken") ?? "";
       const response = await fetch(backendUrl("/api/get_user_info/"), {
-        method: "POST",
+        method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ username: username }),
       });
-      console.log(response.status, response.url);
+
+      if (!response.ok) {
+        console.error("Failed to fetch dashboard data", response.status);
+        return;
+      }
+
       const data = await response.json();
+      setTasks(
+        (data.duties ?? []).map(
+          (duty: {
+            duty_id: number;
+            description: string;
+            status: string;
+            deadline?: string;
+          }) => ({
+            id: duty.duty_id,
+            text: duty.description,
+            completed: duty.status === "Completed",
+            deadline: duty.deadline,
+          }),
+        ),
+      );
+      setHabits(
+        (data.habits ?? []).map(
+          (habit: { habit_id: number; description: string; status: string }) => ({
+            id: habit.habit_id,
+            text: habit.description,
+            completed: habit.status === "Completed",
+          }),
+        ),
+      );
     };
     fetchData();
-  }, [username]);
+  }, []);
 
   return (
     <div
