@@ -109,6 +109,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   const [strength, setStrength] = useState(0);
   const [intelligence, setIntelligence] = useState(0);
   const [charisma, setCharisma] = useState(0);
+  const [bossHP, setBossHP] = useState(100.0);
   const [shake, setShake] = useState(false);
 
   // 2. Create the attack logic
@@ -124,6 +125,8 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
       },
     });
     const data = await response.json();
+
+    setBossHP(data.boss_hp);
     setStrength(data.stats.strength);
     setIntelligence(data.stats.intelligence);
     setCharisma(data.stats.charisma);
@@ -218,12 +221,17 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
 
           <div className="col-span-1">
             <EnemyStats
-              hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 100}
+              hp={
+                bossHP === 100
+                  ? bossInfo?.current_boss_hp
+                    ? bossInfo.current_boss_hp
+                    : 100
+                  : bossHP
+              }
               id={bossInfo?.boss_id ? bossInfo?.boss_id : 1}
               time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 6}
             />
           </div>
-
           <div className="col-span-5">
             {/* 4. Pass state and setters to Tabs */}
             <Tabs

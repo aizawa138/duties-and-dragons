@@ -68,19 +68,6 @@ export default function Tabs({
     };
   };
 
-  const handleDutyClick = async (id: number) => {
-    const csrfToken = await initializeApp();
-    const response = await fetch(backendUrl(`/api/update_duty_status/${id}/`), {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken,
-      },
-    });
-    console.log(response);
-  };
-
   const handleAdd = async () => {
     if (!newItemText.trim()) return;
 
