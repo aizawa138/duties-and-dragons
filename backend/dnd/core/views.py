@@ -213,15 +213,17 @@ def start_current_fight(request):
     )
 
 
+
 @api_view(["GET", "POST"])
-def test_ai(request):
+def get_task_rewards(request):
     task_description = request.query_params.get("task_description") or request.data.get(
         "task_description"
     )
-    boss_max_hp = request.query_params.get("boss_max_hp") or request.data.get(
-        "boss_max_hp"
-    )
-
+    try:
+        current_fight = CurrentFight.objects.get(user_id=request.session.get("user_id"))
+        boss_max_hp = current_fight.boss_id.boss_hp
+    except CurrentFight.DoesNotExist:
+        return Response({"error": "No current fight"}, status=400)
     if not task_description:
         return Response({"error": "task_description is required"}, status=400)
 
@@ -238,9 +240,10 @@ def test_ai(request):
 def create_duty(request):
     user_id = request.session["user_id"]
     description = request.data.get("description")
-    strength = 0.0  # request.data.get("strength", 0.0)
-    intelligence = 0.0  # request.data.get("intelligence", 0.0)
-    charisma = 0.0  # request.data.get("charisma", 0.0)
+    rewards = get_task_rewards(request)
+    strength = rewards.get("strength", 0.0)
+    intelligence = rewards.get("intelligence", 0.0)
+    charisma = rewards.get("charisma", 0.0)
     deadline = request.data.get("deadline")
 
     if not description or not deadline:
@@ -268,9 +271,10 @@ def create_duty(request):
 def create_habit(request):
     user_id = request.session["user_id"]
     description = request.data.get("description")
-    strength = 0.0  # request.data.get("strength", 0.0)
-    intelligence = 0.0  # request.data.get("intelligence", 0.0)
-    charisma = 0.0  # request.data.get("charisma", 0.0)
+    rewards = get_task_rewards(request)
+    strength = rewards.get("strength", 0.0)
+    intelligence = rewards.get("intelligence", 0.0)
+    charisma = rewards.get("charisma", 0.0)
 
     if not description:
         return Response({"error": "Missing fields"}, status=400)
