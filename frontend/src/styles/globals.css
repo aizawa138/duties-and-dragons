@@ -36,3 +36,22 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@keyframes bobbing {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    /* Adjust -10px to change height of bob */
+    transform: translate3d(0, -10px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-bob {
+  /* 2s speed, ease-in-out smooths the top/bottom, infinite loops */
+  animation: bobbing 3s ease-in-out infinite;
+  display: inline-block; /* Required for transform on spans/icons */
+}
