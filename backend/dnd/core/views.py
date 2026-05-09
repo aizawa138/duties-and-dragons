@@ -21,14 +21,21 @@ from google import genai
 
 # api for stats
 from .services.ai_service import generate_task_rewards
+from .services.fight_service import (
+    create_current_fight,
+    ensure_current_fight,
+    reset_current_fight,
+    serialize_current_fight,
+)
 
 
 def _get_task_rewards(user_id, task_description):
     """Helper function to get task rewards for a user"""
     try:
-        current_fight = CurrentFight.objects.get(user_id=user_id)
+        user = Users.objects.get(user_id=user_id)
+        current_fight = ensure_current_fight(user)
         boss_max_hp = current_fight.boss_id.boss_hp
-    except CurrentFight.DoesNotExist:
+    except (Users.DoesNotExist, Bosses.DoesNotExist):
         raise ValueError("No current fight")
 
     if not task_description:
@@ -42,8 +49,8 @@ def _get_task_rewards(user_id, task_description):
     return rewards
 
 
-def _is_boss_defeated(boss):
-    return boss.boss_hp <= 0
+def _is_boss_defeated(boss_hp):
+    return boss_hp <= 0
 
 
 # Custom authentication decorator for custom Users model
@@ -218,23 +225,26 @@ def choose_class(request):
 @custom_auth_required
 def start_current_fight(request):
     user = request.custom_user
+    boss_id = request.data.get("boss_id") or 1
 
     if CurrentFight.objects.filter(user_id=user).exists():
         return Response({"error": "Already in a fight"}, status=400)
 
-    # For simplicity, always fight the same boss for now
-    boss, _ = Bosses.objects.get_or_create(
-        boss_id=request.data.get("boss_id")
-    )
+    try:
+        boss = Bosses.objects.get(boss_id=boss_id)
+    except Bosses.DoesNotExist:
+        return Response({"error": "Boss not found"}, status=404)
 
-    current_fight = CurrentFight.objects.create(user_id=user, boss_id=boss, seconds_left=300)
+    current_fight = create_current_fight(user=user, boss=boss)
 
     return Response(
         {
             "message": "Fight started",
             "fight_id": current_fight.fight_id,
+            "boss_id": boss.boss_id,
             "boss_name": boss.boss_name,
             "seconds_left": current_fight.seconds_left,
+            "ends_at": current_fight.ends_at,
         }
     )
 
@@ -245,11 +255,18 @@ def get_task_rewards(request):
     task_description = request.query_params.get("task_description") or request.data.get(
         "task_description"
     )
+
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return Response({"error": "Unauthorized"}, status=401)
+
     try:
-        current_fight = CurrentFight.objects.get(user_id=request.session.get("user_id"))
+        user = Users.objects.get(user_id=user_id)
+        current_fight = ensure_current_fight(user)
         boss_max_hp = current_fight.boss_id.boss_hp
-    except CurrentFight.DoesNotExist:
+    except (Users.DoesNotExist, Bosses.DoesNotExist):
         return Response({"error": "No current fight"}, status=400)
+
     if not task_description:
         return Response({"error": "task_description is required"}, status=400)
 
@@ -374,9 +391,10 @@ def get_user_info(request):
     habits = Habits.objects.filter(user_id=user_id).values(
         "habit_id", "description", "strength", "intelligence", "charisma", "status"
     )
-    current_fight = CurrentFight.objects.filter(user_id=user_id).values(
-        "fight_id", "boss_id", "seconds_left"
-    ).first()
+    try:
+        current_fight = serialize_current_fight(ensure_current_fight(user))
+    except Bosses.DoesNotExist:
+        current_fight = None
 
     return Response(
         {
@@ -439,18 +457,18 @@ def setup_fight(request):
     # Get boss
     try:
         boss = Bosses.objects.get(boss_id=boss_id)
-    except Bosses.DoesNoremovetExist:
+    except Bosses.DoesNotExist:
         return Response({"error": "Boss not found"}, status=404)
 
-    current_fight = CurrentFight.objects.create(
-        user_id=user, boss_id=boss, seconds_left=300
-    )
+    current_fight = create_current_fight(user=user, boss=boss)
 
     return Response(
         {
             "message": "Fight started",
             "fight_id": current_fight.fight_id,
             "boss_id": boss.boss_id,
+            "seconds_left": current_fight.seconds_left,
+            "ends_at": current_fight.ends_at,
         }
     )
 
@@ -460,7 +478,10 @@ def attack_boss(request):
 
     user = request.custom_user
 
-    current_fight = CurrentFight.objects.get(user_id=user)
+    try:
+        current_fight = ensure_current_fight(user)
+    except Bosses.DoesNotExist:
+        return Response({"error": "No current fight"}, status=400)
 
     completed_duties = Duties.objects.filter(
         user_id=user,
@@ -486,6 +507,9 @@ def attack_boss(request):
     )
 
     boss_hp = current_fight.current_boss_hp
+    if boss_hp is None:
+        boss_hp = current_fight.boss_id.boss_hp
+
     boss_hp -= damage
 
     if boss_hp < 0:
@@ -497,9 +521,10 @@ def attack_boss(request):
     completed_duties.update(status="Used")
 
     return Response({
+        "attack_damage": damage,
         "damage": damage,
         "boss_hp": boss_hp,
-        "boss_defeated": _is_boss_defeated(current_fight.boss_id)
+        "boss_defeated": _is_boss_defeated(boss_hp),
     })
 
 # Update the current fight with the new boss
@@ -521,15 +546,15 @@ def update_current_fight(request):
         return Response({"error": "Boss not found"}, status=404)
 
     current_fight = CurrentFight.objects.get(user_id=user)
-    current_fight.boss_id = boss
-    current_fight.seconds_left = 300 # Reset timer
-    current_fight.save()
+    current_fight = reset_current_fight(current_fight, boss)
 
     return Response(
         {
             "message": "Fight updated",
             "fight_id": current_fight.fight_id,
             "boss_id": boss.boss_id,
+            "seconds_left": current_fight.seconds_left,
+            "ends_at": current_fight.ends_at,
         }
     )
 

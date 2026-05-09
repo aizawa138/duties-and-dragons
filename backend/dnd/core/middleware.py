@@ -1,5 +1,6 @@
 from django.utils import timezone
 from .models import DailyResetState, Habits
+from .services.fight_service import rotate_expired_fights
 
 
 class DailyResetMiddleware:
@@ -19,5 +20,7 @@ class DailyResetMiddleware:
             Habits.objects.filter(status="Completed").update(status="Active")
             state.last_reset_date = today
             state.save()
+
+        rotate_expired_fights()
 
         return self.get_response(request)
