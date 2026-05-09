@@ -129,6 +129,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     setCharisma(data.stats.charisma);
 
     setTasks((prev) => prev.filter((task) => !task.completed));
+    setHabits((prev) => prev.filter((habit) => !habit.completed));
     setShake(true);
   };
 

@@ -491,7 +491,7 @@ def update_habit_status(request, habit_id):
 def get_user_info(request):
     user = request.custom_user
     user_id = request.session.get("user_id")
-    duties = Duties.objects.filter(user_id=user_id).values(
+    duties = Duties.objects.filter(user_id=user_id).exclude(status="Used").values(
         "duty_id",
         "description",
         "strength",
@@ -500,7 +500,7 @@ def get_user_info(request):
         "status",
         "deadline",
     )
-    habits = Habits.objects.filter(user_id=user_id).values(
+    habits = Habits.objects.filter(user_id=user_id).exclude(status="Used").values(
         "habit_id", "description", "strength", "intelligence", "charisma", "status"
     )
     try:
@@ -639,7 +639,7 @@ def attack_boss(request):
     user.save()
 
 
-    Duties.objects.filter(user_id=user, status="Completed").update(status="Used")
+    Duties.objects.filter(user_id=user, status="Completed").delete()
     Habits.objects.filter(user_id=user, status="Completed").update(status="Used")
 
     return Response({
