@@ -82,9 +82,16 @@ export default function ProtectedDashboard({ username }: ProtectedDashboardProps
   }
 
   return (
-    <main className="relative">
-      <Header />
-      <DashboardBack initialUserInfo={userInfo} />
-    </main>
+    <>
+      <main className="relative">
+        <Header
+          initialAuthUser={{
+            username: userInfo.username,
+            has_class: userInfo.has_class,
+          }}
+        />
+        <DashboardBack initialUserInfo={userInfo} />
+      </main>
+    </>
   );
 }

@@ -4,7 +4,13 @@ import whited from '@/public/whited.png';
 import Image from 'next/image';
 
 interface EnemyProps {
-    s: string;
+    s: number;
+}
+
+const types: { [key: number]: any } = {
+    1: redd,
+    2: purpled,
+    3: whited,
 }
 
 export default function Enemy({ s }: EnemyProps) {
@@ -12,7 +18,7 @@ export default function Enemy({ s }: EnemyProps) {
         <div className="w-full h-[30vh] flex flex-col items-center justify-center rounded-lg border border-slate-800 bg-slate-950/90 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur-xl shrink-0">
             <span className="text-[0.8vw] uppercase tracking-[0.2em] text-secondary mb-2">Current Target</span>
             <div className="font-semibold text-[1vw] text-red-400/90">
-            <Image src={redd} alt="Enemy" className="scale-x-[-1] animate-bob"/>
+            <Image src={types[s]} alt="Enemy" className="animate-bob"/>
             </div>
         </div>
     );
