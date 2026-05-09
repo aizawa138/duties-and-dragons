@@ -23,10 +23,26 @@ interface ListItem {
   deadline?: string;
 }
 
+interface UserInfo {
+  user_id: number;
+  username: string;
+  user_class: string;
+  has_class: boolean;
+  level: number;
+  strength: number;
+  intelligence: number;
+  charisma: number;
+  user_hp: number;
+  duties: [];
+  habits: [];
+  current_fight: null | object;
+}
+
 export default function DashboardBack() {
   // 1. Move state here from Tabs.tsx
   const [tasks, setTasks] = useState<ListItem[]>([]);
   const [habits, setHabits] = useState<ListItem[]>([]);
+  const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined);
 
   // 2. Create the attack logic
   const handleAttack = () => {
@@ -48,6 +64,7 @@ export default function DashboardBack() {
       }
 
       const data = await response.json();
+      setUserInfo(data);
       setTasks(
         (data.duties ?? []).map(
           (duty: {
@@ -85,10 +102,10 @@ export default function DashboardBack() {
       <div className="w-3/4 min-h-screen border-r border-l border-slate-800 bg-slate-950/40 backdrop-blur-md shadow-2xl p-10">
         <div className="grid grid-cols-7 gap-4 w-full h-full items-stretch">
           <div className="col-span-1">
-            <PlayerStats str={10} int={8} cha={7} hp={50} />
+            <PlayerStats str={userInfo?.strength ? userInfo?.strength : 0} int={userInfo?.intelligence ? userInfo?.intelligence : 0} cha={userInfo?.charisma ? userInfo?.charisma : 0} hp={userInfo?.user_hp ? userInfo?.user_hp : 0} />
           </div>
           <div className="col-span-2">
-            <Player s="a Player image." />
+            <Player s={userInfo?.user_class ? userInfo?.user_class : ""} />
           </div>
 
           <div className="flex items-center col-span-1 align-middle">
