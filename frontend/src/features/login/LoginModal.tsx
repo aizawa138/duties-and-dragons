@@ -4,7 +4,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/src/components/ui/button/button";
 import { crossaintOne } from "@/public/fonts";
 import { useState } from "react";
-import getCookie from "@/lib/getCookie";
 import { initializeApp } from "@/lib/initializeApp";
 import { useRouter } from "next/navigation";
 import backendUrl from "@/lib/backendUrl";
@@ -12,11 +11,13 @@ import backendUrl from "@/lib/backendUrl";
 type AuthenticationType = {
   authenticationType: string;
   variant: "default" | "secondary";
+  onAuthenticated?: () => void | Promise<void>;
 };
 
 export default function AuthenticationModal({
   authenticationType,
   variant,
+  onAuthenticated,
 }: AuthenticationType) {
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
@@ -24,8 +25,7 @@ export default function AuthenticationModal({
   const router = useRouter();
 
   const handleClick = async () => {
-    await initializeApp();
-    const csrfToken = getCookie("csrftoken") ?? "";
+    const csrfToken = await initializeApp();
 
     if (authenticationType === "Login") {
       try {
@@ -43,11 +43,11 @@ export default function AuthenticationModal({
         if (!response.ok) {
           const { error } = await response.json();
           throw new Error(error);
-          return;
         }
 
         const { username: registeredUsername, has_class: hasClass } =
           await response.json();
+        await onAuthenticated?.();
         if (hasClass) {
           router.push(`/dashboard/${registeredUsername}`);
         } else {
@@ -70,12 +70,14 @@ export default function AuthenticationModal({
         });
 
         if (!response.ok) {
-          return;
+          const { error } = await response.json();
+          throw new Error(error);
         }
 
         const { username: registeredUsername, has_class: hasClass } =
           await response.json();
 
+        await onAuthenticated?.();
         if (hasClass) {
           router.push(`/dashboard/${registeredUsername}`);
         } else {

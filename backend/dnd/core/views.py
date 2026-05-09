@@ -86,7 +86,10 @@ def set_csrf_token(request):
     """
     This view sets the CSRF cookie in the user's browser.
     """
-    return JsonResponse({"details": "CSRF cookie set"}, status=200)
+    return JsonResponse(
+        {"details": "CSRF cookie set", "csrfToken": get_token(request)},
+        status=200,
+    )
 
 
 @api_view(["POST"])
@@ -159,10 +162,7 @@ def login_user(request):
 
 @api_view(["POST"])
 def logout_user(request):
-    # Clear custom session
-    if "user_id" in request.session:
-        del request.session["user_id"]
-    request.session.save()
+    request.session.flush()
 
     return Response({"message": "Logout successful"})
 
@@ -367,7 +367,9 @@ def get_user_info(request):
     return Response(
         {
             "user_id": user.user_id,
+            "username": user.username,
             "user_class": user.user_class,
+            "has_class": bool(user.user_class),
             "level": user.level,
             "strength": user.strength,
             "intelligence": user.inteligence,
