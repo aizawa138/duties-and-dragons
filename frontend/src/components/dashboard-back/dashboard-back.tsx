@@ -130,7 +130,6 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     setStrength(data.stats.strength);
     setIntelligence(data.stats.intelligence);
     setCharisma(data.stats.charisma);
-
     setTasks((prev) => prev.filter((task) => !task.completed));
     setHabits((prev) => prev.filter((habit) => !habit.completed));
     setShake(true);
@@ -161,6 +160,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
       setCharisma(data.stats.charisma);
       setTasks(mapDuties(data.duties));
       setHabits(mapHabits(data.habits));
+      setBossHP(data.current_fight ? data.current_fight.current_boss_hp : 100.0);
     };
     fetchData();
   }, [initialUserInfo]);
@@ -232,7 +232,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
               time_left={6}
             />
           </div>
-          <div className="col-span-5">
+          <div className="col-span-5 h-90">
             {/* 4. Pass state and setters to Tabs */}
             <Tabs
               tasks={tasks}
@@ -242,7 +242,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-2 h-90">
             <Leaderboard />
           </div>
         </div>
