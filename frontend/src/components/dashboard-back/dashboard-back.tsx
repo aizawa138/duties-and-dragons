@@ -14,18 +14,23 @@ import backendUrl from "@/lib/backendUrl";
 import PlayerStats from "../stats_display/p-stats-display";
 import EnemyStats from "../stats_display/e-stats-display";
 
-
 // Define the type here so it's accessible
 interface ListItem {
   id: number;
   text: string;
   completed: boolean;
+  strength: number;
+  intelligence: number;
+  charisma: number;
   deadline?: string;
 }
 
 interface DashboardDuty {
   duty_id: number;
   description: string;
+  strength: number;
+  intelligence: number;
+  charisma: number;
   status: string;
   deadline?: string;
 }
@@ -33,6 +38,9 @@ interface DashboardDuty {
 interface DashboardHabit {
   habit_id: number;
   description: string;
+  strength: number;
+  intelligence: number;
+  charisma: number;
   status: string;
 }
 
@@ -67,6 +75,9 @@ const mapDuties = (duties: DashboardDuty[] = []): ListItem[] =>
   duties.map((duty) => ({
     id: duty.duty_id,
     text: duty.description,
+    strength: duty.strength,
+    intelligence: duty.intelligence,
+    charisma: duty.charisma,
     completed: duty.status === "Completed",
     deadline: duty.deadline,
   }));
@@ -75,6 +86,9 @@ const mapHabits = (habits: DashboardHabit[] = []): ListItem[] =>
   habits.map((habit) => ({
     id: habit.habit_id,
     text: habit.description,
+    strength: habit.strength,
+    intelligence: habit.intelligence,
+    charisma: habit.charisma,
     completed: habit.status === "Completed",
   }));
 
@@ -132,7 +146,12 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
       <div className="w-3/4 min-h-screen border-r border-l border-slate-800 bg-slate-950/40 backdrop-blur-md shadow-2xl p-10">
         <div className="grid grid-cols-7 gap-4 w-full h-full items-stretch">
           <div className="col-span-1">
-            <PlayerStats str={userInfo?.strength ? userInfo?.strength : 0} int={userInfo?.intelligence ? userInfo?.intelligence : 0} cha={userInfo?.charisma ? userInfo?.charisma : 0} hp={userInfo?.user_hp ? userInfo?.user_hp : 0} />
+            <PlayerStats
+              str={userInfo?.strength ? userInfo?.strength : 0}
+              int={userInfo?.intelligence ? userInfo?.intelligence : 0}
+              cha={userInfo?.charisma ? userInfo?.charisma : 0}
+              hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
+            />
           </div>
           <div className="col-span-2">
             <Player s={userInfo?.user_class ? userInfo?.user_class : ""} />
@@ -144,11 +163,11 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
           </div>
 
           <div className="col-span-2">
-            <Enemy s={bossInfo?.boss_id!} />
+            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1} />
           </div>
 
           <div className="col-span-1">
-            <EnemyStats hp={100} weakness="STR"/>
+            <EnemyStats hp={100} weakness="STR" />
           </div>
 
           <div className="col-span-5">

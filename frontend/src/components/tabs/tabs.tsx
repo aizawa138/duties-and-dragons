@@ -4,10 +4,15 @@ import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Button } from "@/src/components/ui/button/button";
 import { crossaintOne } from "@/public/fonts";
+import backendUrl from "@/lib/backendUrl";
+import { initializeApp } from "@/lib/initializeApp";
 
 interface ListItem {
   id: number;
   text: string;
+  strength: number;
+  intelligence: number;
+  charisma: number;
   completed: boolean;
   deadline?: string;
 }
@@ -38,13 +43,52 @@ export default function Tabs({
     const newItem: ListItem = {
       id: Date.now(),
       text: newItemText,
+      strength: 0,
+      intelligence: 0,
+      charisma: 0,
       completed: false,
       deadline: newItemDeadline || undefined,
     };
 
     if (activeTab === "tasks") {
+      const handleAIIntegration = async () => {
+        const csrfToken = await initializeApp();
+        const response = await fetch(backendUrl("/api/create_duty/"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({ description: newItemText }),
+        });
+
+        const data = await response.json();
+        const status = data.status;
+        newItem.strength = status.strength;
+        newItem.intelligence = status.intelligence;
+        newItem.charisma = status.charisma;
+      };
+      handleAIIntegration();
       setTasks((prev) => [...prev, newItem]);
     } else {
+      const handleAIIntegration = async () => {
+        const csrfToken = await initializeApp();
+        const response = await fetch(backendUrl("/api/create_habit/"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify({ description: newItemText }),
+        });
+
+        const data = await response.json();
+        const status = data.status;
+        newItem.strength = status.strength;
+        newItem.intelligence = status.intelligence;
+        newItem.charisma = status.charisma;
+      };
+      handleAIIntegration();
       setHabits((prev) => [...prev, newItem]);
     }
 
