@@ -13,6 +13,10 @@ type AuthUser = {
   has_class: boolean;
 };
 
+type HeaderProps = {
+  initialAuthUser?: AuthUser | null;
+};
+
 async function fetchAuthUser(): Promise<AuthUser | null> {
   const response = await fetch(backendUrl("/api/get_user_info/"), {
     method: "GET",
@@ -30,9 +34,9 @@ async function fetchAuthUser(): Promise<AuthUser | null> {
   };
 }
 
-export default function Header() {
-  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+export default function Header({ initialAuthUser = null }: HeaderProps) {
+  const [authUser, setAuthUser] = useState<AuthUser | null>(initialAuthUser);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(!initialAuthUser);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
 
@@ -96,11 +100,17 @@ export default function Header() {
     }
   };
 
+  const logoHref = authUser
+    ? `/${authUser.has_class ? "dashboard" : "create"}/${encodeURIComponent(
+        authUser.username,
+      )}`
+    : "/";
+
   return (
     <header className="sticky top-0 z-50 flex justify-end items-center p-4 bg-state-900 text-white bg-primary h-16">
       <div className="flex-1"></div>
       <div className="flex-1 text-center font-bold">
-        <Logo />
+        <Logo href={logoHref} />
       </div>
       <div className="flex flex-1 items-center justify-end gap-2">
         {!isCheckingAuth &&
