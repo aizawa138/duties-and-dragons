@@ -266,6 +266,10 @@ def get_task_rewards(request):
 def create_duty(request):
     user = request.custom_user
     description = request.data.get("description")
+    rewards = _get_task_rewards(user_id,description)
+    strength = rewards.get("strength", 0.0)
+    intelligence = rewards.get("intelligence", 0.0)
+    charisma = rewards.get("charisma", 0.0)
     deadline = request.data.get("deadline")
 
     if not description:
@@ -312,6 +316,10 @@ def create_duty(request):
 def create_habit(request):
     user = request.custom_user
     description = request.data.get("description")
+    rewards = _get_task_rewards(user_id, description)
+    strength = rewards.get("strength", 0.0)
+    intelligence = rewards.get("intelligence", 0.0)
+    charisma = rewards.get("charisma", 0.0)
 
     if not description:
         return Response({"error": "Missing fields"}, status=400)
@@ -470,68 +478,89 @@ def setup_fight(request):
         }
     )
 
+@api_view(["POST"])
+@custom_auth_required
+def attack_boss(request):
 
-# @api_view(["POST"])
-# @custom_auth_required
-# def attack_boss(request):
-#     user = request.custom_user
+    user = request.custom_user
 
-#     try:
-#         with transaction.atomic():
-#             current_fight = CurrentFight.objects.select_for_update().get(user_id=user)
-#             boss = Bosses.objects.select_for_update().get(
-#                 boss_id=current_fight.boss_id_id
-#             )
+    current_fight = CurrentFight.objects.get(user_id=user)
 
-#             completed_duties = Duties.objects.select_for_update().filter(
-#                 user_id=user,
-#                 status="Completed",
-#             )
+    completed_duties = Duties.objects.filter(
+        user_id=user,
+        status="Completed"
+    )
 
-#             if not completed_duties.exists():
-#                 return Response(
-#                     {"error": "No completed duties to attack with"},
-#                     status=400,
-#                 )
+    total_strength = completed_duties.aggregate(
+        Sum("strength")
+    )["strength__sum"] or 0
 
-#             if boss.boss_hp is None:
-#                 return Response({"error": "Current boss has no HP"}, status=400)
+    total_intelligence = completed_duties.aggregate(
+        Sum("intelligence")
+    )["intelligence__sum"] or 0
 
-#             totals = completed_duties.aggregate(
-#                 strength=Sum("strength"),
-#                 intelligence=Sum("intelligence"),
-#                 charisma=Sum("charisma"),
-#             )
-#             strength = totals["strength"] or 0.0
-#             intelligence = totals["intelligence"] or 0.0
-#             charisma = totals["charisma"] or 0.0
-#             attack_damage = ceil(strength + intelligence + charisma)
+    total_charisma = completed_duties.aggregate(
+        Sum("charisma")
+    )["charisma__sum"] or 0
 
-#             boss.boss_hp = max(0, boss.boss_hp - attack_damage)
-#             boss.save(update_fields=["boss_hp"])
+    damage = (
+        total_strength
+        + total_intelligence
+        + total_charisma
+    )
 
-#             used_duty_count = completed_duties.update(status="Used")
-#             boss_defeated = _is_boss_defeated(boss)
+    boss_hp = current_fight.current_boss_hp
+    boss_hp -= damage
 
-#     except CurrentFight.DoesNotExist:
-#         return Response({"error": "No current fight"}, status=404)
-#     except Bosses.DoesNotExist:
-#         return Response({"error": "Boss not found"}, status=404)
+    if boss_hp < 0:
+        boss_hp = 0
 
-#     return Response(
-#         {
-#             "message": "Attack complete",
-#             "fight_id": current_fight.fight_id,
-#             "boss_id": boss.boss_id,
-#             "boss_hp": boss.boss_hp,
-#             "boss_defeated": boss_defeated,
-#             "attack_damage": attack_damage,
-#             "used_duty_count": used_duty_count,
-#             "stats": {
-#                 "strength": strength,
-#                 "intelligence": intelligence,
-#                 "charisma": charisma,
-#             },
-#         }
-#     )
+    current_fight.current_boss_hp = boss_hp
+    current_fight.save()
 
+    completed_duties.update(status="Used")
+
+    return Response({
+        "damage": damage,
+        "boss_hp": boss_hp,
+        "boss_defeated": _is_boss_defeated(current_fight.boss_id)
+    })
+
+# Update the current fight with the new boss
+@api_view(["POST"])
+@custom_auth_required
+def update_current_fight(request):
+    user = request.custom_user
+    boss_id = request.data.get("boss_id")
+
+    if not boss_id:
+        return Response({"error": "boss_id is required"}, status=400)
+
+
+    # Get boss
+    # Get new boss template
+    try:
+        boss = Bosses.objects.get(boss_id=boss_id)
+    except Bosses.DoesNotExist:
+        return Response({"error": "Boss not found"}, status=404)
+
+    current_fight = CurrentFight.objects.get(user_id=user)
+    current_fight.boss_id = boss
+    current_fight.seconds_left = 300 # Reset timer
+    current_fight.save()
+
+    return Response(
+        {
+            "message": "Fight updated",
+            "fight_id": current_fight.fight_id,
+            "boss_id": boss.boss_id,
+        }
+    )
+
+@api_view(["GET"])
+def leaderboard(request):
+    top_users = (
+        Users.objects.order_by("-level", "-exp")
+        .values("username", "level", "exp")[:5]
+    )
+    return Response({"leaderboard": list(top_users)})

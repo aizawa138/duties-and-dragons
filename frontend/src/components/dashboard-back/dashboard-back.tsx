@@ -14,7 +14,6 @@ import backendUrl from "@/lib/backendUrl";
 import PlayerStats from "../stats_display/p-stats-display";
 import EnemyStats from "../stats_display/e-stats-display";
 
-
 // Define the type here so it's accessible
 interface ListItem {
   id: number;
@@ -26,7 +25,20 @@ interface ListItem {
   deadline?: string;
 }
 
-interface UserInfo {
+interface DashboardDuty {
+  duty_id: number;
+  description: string;
+  status: string;
+  deadline?: string;
+}
+
+interface DashboardHabit {
+  habit_id: number;
+  description: string;
+  status: string;
+}
+
+export interface DashboardUserInfo {
   user_id: number;
   username: string;
   user_class: string;
@@ -36,16 +48,41 @@ interface UserInfo {
   intelligence: number;
   charisma: number;
   user_hp: number;
-  duties: [];
-  habits: [];
+  duties: DashboardDuty[];
+  habits: DashboardHabit[];
   current_fight: null | object;
 }
 
-export default function DashboardBack() {
+type DashboardBackProps = {
+  initialUserInfo?: DashboardUserInfo;
+};
+
+const mapDuties = (duties: DashboardDuty[] = []): ListItem[] =>
+  duties.map((duty) => ({
+    id: duty.duty_id,
+    text: duty.description,
+    completed: duty.status === "Completed",
+    deadline: duty.deadline,
+  }));
+
+const mapHabits = (habits: DashboardHabit[] = []): ListItem[] =>
+  habits.map((habit) => ({
+    id: habit.habit_id,
+    text: habit.description,
+    completed: habit.status === "Completed",
+  }));
+
+export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   // 1. Move state here from Tabs.tsx
-  const [tasks, setTasks] = useState<ListItem[]>([]);
-  const [habits, setHabits] = useState<ListItem[]>([]);
-  const [userInfo, setUserInfo] = useState<UserInfo | undefined>(undefined);
+  const [tasks, setTasks] = useState<ListItem[]>(() =>
+    mapDuties(initialUserInfo?.duties),
+  );
+  const [habits, setHabits] = useState<ListItem[]>(() =>
+    mapHabits(initialUserInfo?.habits),
+  );
+  const [userInfo, setUserInfo] = useState<DashboardUserInfo | undefined>(
+    initialUserInfo,
+  );
 
   // 2. Create the attack logic
   const handleAttack = () => {
@@ -55,10 +92,15 @@ export default function DashboardBack() {
   };
 
   useEffect(() => {
+    if (initialUserInfo) {
+      return;
+    }
+
     const fetchData = async () => {
       const response = await fetch(backendUrl("/api/get_user_info/"), {
         method: "GET",
         credentials: "include",
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -68,49 +110,11 @@ export default function DashboardBack() {
 
       const data = await response.json();
       setUserInfo(data);
-      setTasks(
-        (data.duties ?? []).map(
-          (duty: {
-            duty_id: number;
-            description: string;
-            strength: number;
-            intelligence: number;
-            charisma: number;
-            status: string;
-            deadline?: string;
-          }) => ({
-            id: duty.duty_id,
-            text: duty.description,
-            strength: duty.strength,
-            intelligence: duty.intelligence,
-            charisma: duty.charisma,
-            completed: duty.status === "Completed",
-            deadline: duty.deadline,
-          }),
-        ),
-      );
-      setHabits(
-        (data.habits ?? []).map(
-          (habit: {
-            habit_id: number;
-            description: string;
-            strength: number;
-            intelligence: number;
-            charisma: number;
-            status: string;
-          }) => ({
-            id: habit.habit_id,
-            text: habit.description,
-            strength: habit.strength,
-            intelligence: habit.intelligence,
-            charisma: habit.charisma,
-            completed: habit.status === "Completed",
-          }),
-        ),
-      );
+      setTasks(mapDuties(data.duties));
+      setHabits(mapHabits(data.habits));
     };
     fetchData();
-  }, []);
+  }, [initialUserInfo]);
 
   return (
     <div
@@ -121,7 +125,12 @@ export default function DashboardBack() {
       <div className="w-3/4 min-h-screen border-r border-l border-slate-800 bg-slate-950/40 backdrop-blur-md shadow-2xl p-10">
         <div className="grid grid-cols-7 gap-4 w-full h-full items-stretch">
           <div className="col-span-1">
-            <PlayerStats str={userInfo?.strength ? userInfo?.strength : 0} int={userInfo?.intelligence ? userInfo?.intelligence : 0} cha={userInfo?.charisma ? userInfo?.charisma : 0} hp={userInfo?.user_hp ? userInfo?.user_hp : 0} />
+            <PlayerStats
+              str={userInfo?.strength ? userInfo?.strength : 0}
+              int={userInfo?.intelligence ? userInfo?.intelligence : 0}
+              cha={userInfo?.charisma ? userInfo?.charisma : 0}
+              hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
+            />
           </div>
           <div className="col-span-2">
             <Player s={userInfo?.user_class ? userInfo?.user_class : ""} />
@@ -137,7 +146,7 @@ export default function DashboardBack() {
           </div>
 
           <div className="col-span-1">
-            <EnemyStats hp={100} weakness="STR"/>
+            <EnemyStats hp={100} weakness="STR" />
           </div>
 
           <div className="col-span-5">
