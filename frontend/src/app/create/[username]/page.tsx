@@ -8,7 +8,6 @@ import Header from "@/src/components/header/Header";
 import { Button } from "@/src/components/ui/button/button";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import getCookie from "@/lib/getCookie";
 import { useRouter } from "next/navigation";
 import { initializeApp } from "@/lib/initializeApp";
 import backendUrl from "@/lib/backendUrl";
@@ -25,8 +24,7 @@ export default function Page() {
   };
 
   const handleRoleClick = async () => {
-    await initializeApp();
-    const csrfToken = getCookie("csrftoken") ?? "";
+    const csrfToken = await initializeApp();
     const response = await fetch(backendUrl("/api/choose_class/"), {
       method: "POST",
       credentials: "include",

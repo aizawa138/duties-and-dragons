@@ -19,7 +19,12 @@ interface TabsProps {
   setHabits: React.Dispatch<React.SetStateAction<ListItem[]>>;
 }
 
-export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) {
+export default function Tabs({
+  tasks,
+  setTasks,
+  habits,
+  setHabits,
+}: TabsProps) {
   const [activeTab, setActiveTab] = useState<"tasks" | "habit">("tasks");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newItemText, setNewItemText] = useState("");
@@ -52,8 +57,8 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
     const setter = activeTab === "tasks" ? setTasks : setHabits;
     setter((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
+        item.id === id ? { ...item, completed: !item.completed } : item,
+      ),
     );
   };
 
@@ -70,7 +75,8 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
       return (
         <div className="flex flex-col items-center justify-center h-full opacity-40 py-10">
           <p className="text-sm text-secondary">
-            No {activeTab === "tasks" ? "duties" : "habits"} yet. Click + to begin.
+            No {activeTab === "tasks" ? "duties" : "habits"} yet. Click + to
+            begin.
           </p>
         </div>
       );
@@ -125,15 +131,15 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
               className="p-1.5 rounded-md text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
               title="Delete item"
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="14" 
-                height="14" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
                 strokeLinejoin="round"
               >
                 <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -193,13 +199,20 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
               </Dialog.Description>
 
               <div className="flex flex-col">
-                <label htmlFor="itemName" className="text-gray-700 text-sm mb-1">Name</label>
+                <label
+                  htmlFor="itemName"
+                  className="text-gray-700 text-sm mb-1"
+                >
+                  Name
+                </label>
                 <input
                   id="itemName"
                   type="text"
                   className="border rounded-2xl border-gray-500 px-4 py-1 focus:outline-accent mb-4 text-gray-900"
                   placeholder={`E.g., ${
-                    activeTab === "tasks" ? "Defeat the Goblin" : "Drink a Potion"
+                    activeTab === "tasks"
+                      ? "Defeat the Goblin"
+                      : "Drink a Potion"
                   }`}
                   value={newItemText}
                   onChange={(e) => setNewItemText(e.target.value)}
@@ -207,7 +220,12 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
 
                 {activeTab === "tasks" && (
                   <>
-                    <label htmlFor="itemDeadline" className="text-gray-700 text-sm mb-1">Deadline</label>
+                    <label
+                      htmlFor="itemDeadline"
+                      className="text-gray-700 text-sm mb-1"
+                    >
+                      Deadline
+                    </label>
                     <input
                       id="itemDeadline"
                       type="date"

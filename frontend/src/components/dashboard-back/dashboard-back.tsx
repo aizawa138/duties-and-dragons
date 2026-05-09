@@ -8,9 +8,12 @@ import Tabs from "../tabs/tabs";
 import Leaderboard from "@/src/features/leaderboard/Leaderboard";
 import AttackButton from "../attack-button/attack-button";
 import backendUrl from "@/lib/backendUrl";
-import { initializeApp } from "@/lib/initializeApp";
-import getCookie from "@/lib/getCookie";
-import { usePathname } from "next/navigation";
+// import { initializeApp } from "@/lib/initializeApp";
+// import getCookie from "@/lib/getCookie";
+// import { usePathname } from "next/navigation";
+import PlayerStats from "../stats_display/p-stats-display";
+import EnemyStats from "../stats_display/e-stats-display";
+
 
 // Define the type here so it's accessible
 interface ListItem {
@@ -25,9 +28,6 @@ export default function DashboardBack() {
   const [tasks, setTasks] = useState<ListItem[]>([]);
   const [habits, setHabits] = useState<ListItem[]>([]);
 
-  const pathname = usePathname();
-  const username = pathname.split("/")[2];
-
   // 2. Create the attack logic
   const handleAttack = () => {
     // Filter out completed duties (tasks), keep everything else
@@ -37,22 +37,44 @@ export default function DashboardBack() {
 
   useEffect(() => {
     const fetchData = async () => {
-      await initializeApp();
-      const csrfToken = getCookie("csrftoken") ?? "";
       const response = await fetch(backendUrl("/api/get_user_info/"), {
-        method: "POST",
+        method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ username: username }),
       });
-      console.log(response.status, response.url);
+
+      if (!response.ok) {
+        console.error("Failed to fetch dashboard data", response.status);
+        return;
+      }
+
       const data = await response.json();
+      setTasks(
+        (data.duties ?? []).map(
+          (duty: {
+            duty_id: number;
+            description: string;
+            status: string;
+            deadline?: string;
+          }) => ({
+            id: duty.duty_id,
+            text: duty.description,
+            completed: duty.status === "Completed",
+            deadline: duty.deadline,
+          }),
+        ),
+      );
+      setHabits(
+        (data.habits ?? []).map(
+          (habit: { habit_id: number; description: string; status: string }) => ({
+            id: habit.habit_id,
+            text: habit.description,
+            completed: habit.status === "Completed",
+          }),
+        ),
+      );
     };
     fetchData();
-  }, [username]);
+  }, []);
 
   return (
     <div
@@ -61,15 +83,15 @@ export default function DashboardBack() {
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,58,138,0.15),transparent)] pointer-events-none" />
 
       <div className="w-3/4 min-h-screen border-r border-l border-slate-800 bg-slate-950/40 backdrop-blur-md shadow-2xl p-10">
-        <div className="grid grid-cols-7 gap-10 w-full h-full items-stretch">
+        <div className="grid grid-cols-7 gap-4 w-full h-full items-stretch">
           <div className="col-span-1">
-            <Player s="some stats." />
+            <PlayerStats str={10} int={8} cha={7} hp={50} />
           </div>
           <div className="col-span-2">
             <Player s="a Player image." />
           </div>
 
-          <div className="col-span-1">
+          <div className="flex items-center col-span-1 align-middle">
             {/* 3. Pass the function to the button */}
             <AttackButton onAttack={handleAttack} />
           </div>
@@ -79,7 +101,7 @@ export default function DashboardBack() {
           </div>
 
           <div className="col-span-1">
-            <Enemy s="some stats." />
+            <EnemyStats hp={100} weakness="STR"/>
           </div>
 
           <div className="col-span-5">
