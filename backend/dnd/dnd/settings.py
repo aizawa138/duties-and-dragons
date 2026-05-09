@@ -16,6 +16,22 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def env_bool(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.lower() in {"1", "true", "yes", "on"}
+
+
+def env_list(name, default):
+    value = os.getenv(name)
+    if not value:
+        return default
+
+    return [item.strip().rstrip("/") for item in value.split(",") if item.strip()]
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,7 +43,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-5-1vwnp6d%!2r81953*iu&ab8fp6kg7n3#7vz@*2a31g7!#d-*"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool("DEBUG", True)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -120,19 +136,27 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+FRONTEND_ORIGINS = env_list(
+    "FRONTEND_ORIGINS",
+    [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://duties-and-dragons-1gxp98t3d-daigo-kitagawas-projects.vercel.app",
+    ],
+)
+
+BACKEND_ORIGINS = env_list(
+    "BACKEND_ORIGINS",
+    [
+        "https://duties-and-dragons.onrender.com",
+    ],
+)
+
 # 1. Who is allowed to talk to the backend?
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = FRONTEND_ORIGINS
 
 # 2. Who do we trust for CSRF-protected requests? (Crucial for Django 4.0+)
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://duties-and-dragons.onrender.com",
-    "https://duties-and-dragons-1gxp98t3d-daigo-kitagawas-projects.vercel.app/"
-]
+CSRF_TRUSTED_ORIGINS = FRONTEND_ORIGINS + BACKEND_ORIGINS
 
 # 3. Allow cookies/headers to be sent in the request
 CORS_ALLOW_CREDENTIALS = True
@@ -142,17 +166,18 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_HTTPONLY = False
 
 # 6. Use SameSite=None for cross-origin frontend/backend requests.
-#    This requires secure cookies in modern browsers, but localhost is treated as secure.
-SESSION_COOKIE_SAMESITE = "None"
-CSRF_COOKIE_SAMESITE = "None"
+#    Browsers require Secure cookies whenever SameSite=None is used.
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "None")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", SESSION_COOKIE_SAMESITE)
 
-# 7. Since SameSite=None is used, set secure cookies only in production.
-if not DEBUG:
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SECURE = True
-else:
-    CSRF_COOKIE_SECURE = False
-    SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = env_bool(
+    "SESSION_COOKIE_SECURE",
+    SESSION_COOKIE_SAMESITE.lower() == "none" or not DEBUG,
+)
+CSRF_COOKIE_SECURE = env_bool(
+    "CSRF_COOKIE_SECURE",
+    CSRF_COOKIE_SAMESITE.lower() == "none" or not DEBUG,
+)
 
 # 8. If Django is behind a proxy (Render/Railway), preserve HTTPS info.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
