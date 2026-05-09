@@ -321,13 +321,13 @@ api_view(["GET"])
 @custom_auth_required
 def get_user_info(request):
     user = request.custom_user
-    duties = Duties.objects.filter(user_id=user.user_id).values(
+    duties = Duties.objects.filter(username=user.username).values(
         "duty_id", "description", "strength", "intelligence", "charisma", "status"
     )
-    habits = Habits.objects.filter(user_id=user.user_id).values(
+    habits = Habits.objects.filter(username=user.username).values(
         "habit_id", "description", "strength", "intelligence", "charisma", "status"
     )
-    current_fight = CurrentFight.objects.filter(user_id=user.user_id).values(
+    current_fight = CurrentFight.objects.filter(username=user.username).values(
         "fight_id", "boss_id", "seconds_left"
     ).first()
 
