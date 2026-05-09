@@ -264,7 +264,7 @@ export default function Tabs({
   };
 
   return (
-    <div className="w-full h-80 max-h-full rounded-lg border border-slate-800 bg-slate-950/90 shadow-2xl shadow-slate-950/50 backdrop-blur-xl flex flex-col overflow-hidden relative">
+    <div className="w-full h-full max-h-full rounded-lg border border-slate-800 bg-slate-950/90 shadow-2xl shadow-slate-950/50 backdrop-blur-xl flex flex-col overflow-hidden relative">
       <div className="flex items-center justify-between p-2 border-b border-slate-800 bg-slate-900/50 shrink-0">
         <div className="flex gap-2 grow">
           <button
