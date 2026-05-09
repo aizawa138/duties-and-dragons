@@ -1,13 +1,11 @@
-import Header from "@/src/components/header/Header";
-import DashboardBack from "@/src/components/dashboard-back/dashboard-back";
+import ProtectedDashboard from "@/src/components/dashboard-back/protected-dashboard";
 
-export default async function Page({ params }: { params: { username: string } }) {
-    const { username } = await params;
-    return (
-      <main className="relative">
-        <Header />
-        <DashboardBack />
-        <p>Welcome to the dashboard: {username}</p>
-      </main>
-    );
-  }
+type DashboardPageProps = {
+  params: Promise<{ username: string }>;
+};
+
+export default async function Page({ params }: DashboardPageProps) {
+  const { username } = await params;
+
+  return <ProtectedDashboard username={username} />;
+}
