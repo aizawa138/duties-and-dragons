@@ -163,7 +163,6 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     };
     fetchData();
   }, [initialUserInfo]);
-  console.log(bossInfo);
 
   return (
     <div
@@ -226,7 +225,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
               time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 6}
             />
           </div>
-          <div className="col-span-5">
+          <div className="col-span-5 h-90">
             {/* 4. Pass state and setters to Tabs */}
             <Tabs
               tasks={tasks}
@@ -236,7 +235,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-2 h-90">
             <Leaderboard />
           </div>
         </div>
