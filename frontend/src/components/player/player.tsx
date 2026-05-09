@@ -4,7 +4,8 @@ import Vampire from "@/public/vampire.png";
 import Image from 'next/image';
 
 interface PlayerClass {
-    s: string;
+    classname: string;
+    username: string;
 }
 
 const classes: { [key: string]: any } = {
@@ -13,12 +14,12 @@ const classes: { [key: string]: any } = {
     "Vampire": Vampire,
 }
 
-export default function Player({ s }: PlayerClass) {
+export default function Player({ classname, username }: PlayerClass) {
     return (
         <div className="w-full h-[30vh] flex flex-col items-center justify-center rounded-lg border border-slate-800 bg-slate-950/90 p-4 shadow-2xl shadow-slate-950/50 backdrop-blur-xl shrink-0">
-            <span className="text-[0.8vw] uppercase tracking-[0.2em] text-secondary mb-2">Character</span>
+            <span className="text-[0.8vw] uppercase tracking-[0.2em] text-secondary mb-2">{username}</span>
             <div className="font-semibold text-[1vw] text-accent animate-bob">
-                <Image src={classes[s]} alt="Player" />
+                <Image src={classes[classname]} alt="Player" />
             </div>
         </div>
     );

@@ -369,7 +369,7 @@ def create_duty(request):
     charisma = stats.get("charisma", 0.0)
     deadline = request.data.get("deadline")
 
-    if not description or not deadline:
+    if not description:
         return Response({"error": "Missing fields"}, status=400)
 
     duty = Duties.objects.create(
@@ -407,6 +407,16 @@ def create_habit(request):
 
     if not description:
         return Response({"error": "Missing fields"}, status=400)
+
+    try:
+        rewards = _get_task_rewards(user.user_id, description)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=400)
+
+    stats = rewards.get("stats", {})
+    strength = stats.get("strength", 0.0)
+    intelligence = stats.get("intelligence", 0.0)
+    charisma = stats.get("charisma", 0.0)
 
     habit = Habits.objects.create(
         user_id=user,
