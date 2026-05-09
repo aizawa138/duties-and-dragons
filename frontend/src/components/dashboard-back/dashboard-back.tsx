@@ -130,7 +130,6 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     setStrength(data.stats.strength);
     setIntelligence(data.stats.intelligence);
     setCharisma(data.stats.charisma);
-
     setTasks((prev) => prev.filter((task) => !task.completed));
     setHabits((prev) => prev.filter((habit) => !habit.completed));
     setShake(true);
@@ -160,10 +159,11 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
       setCharisma(data.stats.charisma);
       setTasks(mapDuties(data.duties));
       setHabits(mapHabits(data.habits));
+      setBossHP(data.current_fight ? data.current_fight.current_boss_hp : 100.0);
     };
     fetchData();
   }, [initialUserInfo]);
-  console.log(bossInfo);
+  console.log(bossHP)
 
   return (
     <div
@@ -221,13 +221,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
 
           <div className="col-span-1">
             <EnemyStats
-              hp={
-                bossHP === 100
-                  ? bossInfo?.current_boss_hp
-                    ? bossInfo.current_boss_hp
-                    : 100
-                  : bossHP
-              }
+              hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 100}
               id={bossInfo?.boss_id ? bossInfo?.boss_id : 1}
               time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 6}
             />
