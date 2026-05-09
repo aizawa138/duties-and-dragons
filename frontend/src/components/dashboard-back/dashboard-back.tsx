@@ -51,6 +51,7 @@ export interface DashboardUserInfo {
   user_class: string;
   has_class: boolean;
   level: number;
+  boss_hp: number;
   strength: number;
   intelligence: number;
   charisma: number;
@@ -104,7 +105,6 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   const [userInfo, setUserInfo] = useState<DashboardUserInfo | undefined>(
     initialUserInfo,
   );
-  const [bossInfo] = useState<BossInfo | null>(null);
 
   const [strength, setStrength] = useState(0);
   const [intelligence, setIntelligence] = useState(0);
@@ -153,6 +153,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
       }
 
       const data = await response.json();
+      console.log(data);
       setUserInfo(data);
       setStrength(data.stats.strength);
       setIntelligence(data.stats.intelligence);
@@ -215,14 +216,20 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             className={`col-span-2 ${shake ? "animate-shake" : ""}`}
             onAnimationEnd={() => setShake(false)}
           >
-            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1} />
+            <Enemy s={1} />
           </div>
 
           <div className="col-span-1">
             <EnemyStats
-              hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 100}
-              id={bossInfo?.boss_id ? bossInfo?.boss_id : 1}
-              time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 6}
+              hp={
+                bossHP === 100
+                  ? userInfo?.boss_hp
+                    ? userInfo?.boss_hp
+                    : 100
+                  : bossHP
+              }
+              id={1}
+              time_left={6}
             />
           </div>
           <div className="col-span-5 h-90">
