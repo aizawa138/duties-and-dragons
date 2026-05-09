@@ -48,7 +48,15 @@ export interface DashboardUserInfo {
   user_hp: number;
   duties: DashboardDuty[];
   habits: DashboardHabit[];
-  current_fight: null | object;
+  current_fight: null | BossInfo;
+}
+
+interface BossInfo {
+  fight_id: number;
+  user_id: number;
+  boss_id: number;
+  seconds_left: number;
+  current_boss_hp: number;
 }
 
 type DashboardBackProps = {
@@ -81,6 +89,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   const [userInfo, setUserInfo] = useState<DashboardUserInfo | undefined>(
     initialUserInfo,
   );
+  const [bossInfo, setBossInfo] = useState<BossInfo | null>(null);
 
   // 2. Create the attack logic
   const handleAttack = () => {
@@ -135,7 +144,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
           </div>
 
           <div className="col-span-2">
-            <Enemy s="an Enemy image." />
+            <Enemy s={bossInfo?.boss_id!} />
           </div>
 
           <div className="col-span-1">
