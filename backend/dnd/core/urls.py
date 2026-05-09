@@ -13,7 +13,7 @@ urlpatterns = [
     path("api/get_task_rewards/", views.get_task_rewards, name="get_task_rewards"),
     path("api/get_user_info/", views.get_user_info, name="get_user_info"),
     path("api/remove_duty/", views.remove_duty, name="remove_duty"),
-    path("api/setup_fight/", views.setup_fight, name="setup_fight"),
+    path("api/start_current_fight/", views.start_current_fight, name="start_current_fight"),
 ]
 
 # // Next.js side
