@@ -28,6 +28,9 @@ interface ListItem {
 interface DashboardDuty {
   duty_id: number;
   description: string;
+  strength?: number | null;
+  intelligence?: number | null;
+  charisma?: number | null;
   status: string;
   deadline?: string;
 }
@@ -35,6 +38,9 @@ interface DashboardDuty {
 interface DashboardHabit {
   habit_id: number;
   description: string;
+  strength?: number | null;
+  intelligence?: number | null;
+  charisma?: number | null;
   status: string;
 }
 
@@ -61,6 +67,9 @@ const mapDuties = (duties: DashboardDuty[] = []): ListItem[] =>
   duties.map((duty) => ({
     id: duty.duty_id,
     text: duty.description,
+    strength: Number(duty.strength ?? 0),
+    intelligence: Number(duty.intelligence ?? 0),
+    charisma: Number(duty.charisma ?? 0),
     completed: duty.status === "Completed",
     deadline: duty.deadline,
   }));
@@ -69,6 +78,9 @@ const mapHabits = (habits: DashboardHabit[] = []): ListItem[] =>
   habits.map((habit) => ({
     id: habit.habit_id,
     text: habit.description,
+    strength: Number(habit.strength ?? 0),
+    intelligence: Number(habit.intelligence ?? 0),
+    charisma: Number(habit.charisma ?? 0),
     completed: habit.status === "Completed",
   }));
 
