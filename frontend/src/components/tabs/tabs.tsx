@@ -117,6 +117,33 @@ export default function Tabs({
   };
 
   const toggleComplete = (id: number) => {
+    if (activeTab === "tasks") {
+      const handleDutyClick = async () => {
+        const csrfToken = await initializeApp();
+        await fetch(backendUrl(`/api/update_duty_status/${id}/`), {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+        });
+      };
+      handleDutyClick();
+    } else {
+      const handleHabitClick = async () => {
+        const csrfToken = await initializeApp();
+        await fetch(backendUrl(`/api/update_habit_status/${id}/`), {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+        });
+      };
+      handleHabitClick();
+    }
     const setter = activeTab === "tasks" ? setTasks : setHabits;
     setter((prev) =>
       prev.map((item) =>
@@ -180,7 +207,10 @@ export default function Tabs({
                   }`}
                 >
                   {item.text}
-                  <p>STR: {item.strength} INT: {item.intelligence} CHA: {item.charisma}</p>
+                  <p>
+                    STR: {item.strength} INT: {item.intelligence} CHA:{" "}
+                    {item.charisma}
+                  </p>
                 </span>
                 {item.deadline && (
                   <span className="text-[10px] uppercase tracking-wider text-rose-400/80 font-medium">
