@@ -37,7 +37,38 @@ export default function Tabs({
 
   const today = new Date().toISOString().split("T")[0];
 
-  const handleAdd = () => {
+  const handleAIIntegration = async (
+    endpoint: string,
+    payload: { description: string; deadline?: string },
+  ) => {
+    const csrfToken = await initializeApp();
+    const response = await fetch(backendUrl(endpoint), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error ?? `Request failed with ${response.status}`);
+    }
+
+    const stats = data.stats ?? {};
+
+    return {
+      id: data.duty_id ?? data.habit_id ?? Date.now(),
+      strength: Number(stats.strength ?? 0),
+      intelligence: Number(stats.intelligence ?? 0),
+      charisma: Number(stats.charisma ?? 0),
+    };
+  };
+
+  const handleAdd = async () => {
     if (!newItemText.trim()) return;
 
     const newItem: ListItem = {
@@ -50,51 +81,26 @@ export default function Tabs({
       deadline: newItemDeadline || undefined,
     };
 
-    if (activeTab === "tasks") {
-      const handleAIIntegration = async () => {
-        const csrfToken = await initializeApp();
-        const response = await fetch(backendUrl("/api/create_duty/"), {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
-          },
-          body: JSON.stringify({ description: newItemText }),
+    try {
+      if (activeTab === "tasks") {
+        const createdItem = await handleAIIntegration("/api/create_duty/", {
+          description: newItemText,
+          deadline: newItemDeadline,
         });
-
-        const data = await response.json();
-        const status = data.status;
-        newItem.strength = status.strength;
-        newItem.intelligence = status.intelligence;
-        newItem.charisma = status.charisma;
-      };
-      handleAIIntegration();
-      setTasks((prev) => [...prev, newItem]);
-    } else {
-      const handleAIIntegration = async () => {
-        const csrfToken = await initializeApp();
-        const response = await fetch(backendUrl("/api/create_habit/"), {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken,
-          },
-          body: JSON.stringify({ description: newItemText }),
+        setTasks((prev) => [...prev, { ...newItem, ...createdItem }]);
+      } else {
+        const createdItem = await handleAIIntegration("/api/create_habit/", {
+          description: newItemText,
         });
+        setHabits((prev) => [...prev, { ...newItem, ...createdItem }]);
+      }
 
-        const data = await response.json();
-        const status = data.status;
-        newItem.strength = status.strength;
-        newItem.intelligence = status.intelligence;
-        newItem.charisma = status.charisma;
-      };
-      handleAIIntegration();
-      setHabits((prev) => [...prev, newItem]);
+      setNewItemText("");
+      setNewItemDeadline("");
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to create item", error);
     }
-
-    setNewItemText("");
-    setNewItemDeadline("");
-    setIsModalOpen(false);
   };
 
   const toggleComplete = (id: number) => {

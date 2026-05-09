@@ -18,19 +18,19 @@ import EnemyStats from "../stats_display/e-stats-display";
 interface ListItem {
   id: number;
   text: string;
-  completed: boolean;
   strength: number;
   intelligence: number;
   charisma: number;
+  completed: boolean;
   deadline?: string;
 }
 
 interface DashboardDuty {
   duty_id: number;
   description: string;
-  strength: number;
-  intelligence: number;
-  charisma: number;
+  strength?: number | null;
+  intelligence?: number | null;
+  charisma?: number | null;
   status: string;
   deadline?: string;
 }
@@ -38,9 +38,9 @@ interface DashboardDuty {
 interface DashboardHabit {
   habit_id: number;
   description: string;
-  strength: number;
-  intelligence: number;
-  charisma: number;
+  strength?: number | null;
+  intelligence?: number | null;
+  charisma?: number | null;
   status: string;
 }
 
@@ -75,9 +75,9 @@ const mapDuties = (duties: DashboardDuty[] = []): ListItem[] =>
   duties.map((duty) => ({
     id: duty.duty_id,
     text: duty.description,
-    strength: duty.strength,
-    intelligence: duty.intelligence,
-    charisma: duty.charisma,
+    strength: Number(duty.strength ?? 0),
+    intelligence: Number(duty.intelligence ?? 0),
+    charisma: Number(duty.charisma ?? 0),
     completed: duty.status === "Completed",
     deadline: duty.deadline,
   }));
@@ -86,9 +86,9 @@ const mapHabits = (habits: DashboardHabit[] = []): ListItem[] =>
   habits.map((habit) => ({
     id: habit.habit_id,
     text: habit.description,
-    strength: habit.strength,
-    intelligence: habit.intelligence,
-    charisma: habit.charisma,
+    strength: Number(habit.strength ?? 0),
+    intelligence: Number(habit.intelligence ?? 0),
+    charisma: Number(habit.charisma ?? 0),
     completed: habit.status === "Completed",
   }));
 
@@ -152,6 +152,12 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
               cha={userInfo?.charisma ? userInfo?.charisma : 0}
               hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
             />
+            <PlayerStats
+              str={userInfo?.strength ? userInfo?.strength : 0}
+              int={userInfo?.intelligence ? userInfo?.intelligence : 0}
+              cha={userInfo?.charisma ? userInfo?.charisma : 0}
+              hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
+            />
           </div>
           <div className="col-span-2">
             <Player s={userInfo?.user_class ? userInfo?.user_class : ""} />
@@ -167,6 +173,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
           </div>
 
           <div className="col-span-1">
+            <EnemyStats hp={100} weakness="STR" />
             <EnemyStats hp={100} weakness="STR" />
           </div>
 

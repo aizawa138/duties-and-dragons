@@ -264,7 +264,7 @@ def get_task_rewards(request):
 @api_view(["POST"])
 @custom_auth_required
 def create_duty(request):
-    user_id = request.session["user_id"]
+    user = request.custom_user
     description = request.data.get("description")
     rewards = _get_task_rewards(user_id,description)
     strength = rewards.get("strength", 0.0)
@@ -272,17 +272,31 @@ def create_duty(request):
     charisma = rewards.get("charisma", 0.0)
     deadline = request.data.get("deadline")
 
-    if not description or not deadline:
+    if not description:
         return Response({"error": "Missing fields"}, status=400)
 
-    duty = Duties.objects.create(
-        user_id=user_id,
-        description=description,
-        strength=strength,
-        intelligence=intelligence,
-        charisma=charisma,
-        deadline=deadline,
-    )
+    try:
+        rewards = _get_task_rewards(user.user_id, description)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=400)
+
+    stats = rewards.get("stats", {})
+    strength = stats.get("strength", 0.0)
+    intelligence = stats.get("intelligence", 0.0)
+    charisma = stats.get("charisma", 0.0)
+
+    duty_fields = {
+        "user_id": user,
+        "description": description,
+        "strength": strength,
+        "intelligence": intelligence,
+        "charisma": charisma,
+    }
+
+    if deadline:
+        duty_fields["deadline"] = deadline
+
+    duty = Duties.objects.create(**duty_fields)
 
     return Response(
         {
@@ -300,7 +314,7 @@ def create_duty(request):
 @api_view(["POST"])
 @custom_auth_required
 def create_habit(request):
-    user_id = request.session["user_id"]
+    user = request.custom_user
     description = request.data.get("description")
     rewards = _get_task_rewards(user_id, description)
     strength = rewards.get("strength", 0.0)
@@ -310,8 +324,18 @@ def create_habit(request):
     if not description:
         return Response({"error": "Missing fields"}, status=400)
 
+    try:
+        rewards = _get_task_rewards(user.user_id, description)
+    except ValueError as exc:
+        return Response({"error": str(exc)}, status=400)
+
+    stats = rewards.get("stats", {})
+    strength = stats.get("strength", 0.0)
+    intelligence = stats.get("intelligence", 0.0)
+    charisma = stats.get("charisma", 0.0)
+
     habit = Habits.objects.create(
-        user_id=user_id,
+        user_id=user,
         description=description,
         strength=strength,
         intelligence=intelligence,
