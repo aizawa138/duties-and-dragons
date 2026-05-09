@@ -33,6 +33,32 @@ def custom_auth_required(func):
     return wrapper
 
 
+CLASS_STARTING_STATS = {
+    "Knight": {
+        "strength": 2,
+        "inteligence": 1,
+        "charisma": 1,
+        "user_hp": 100,
+    },
+    "Mage": {
+        "strength": 1,
+        "inteligence": 2,
+        "charisma": 1,
+        "user_hp": 100,
+    },
+    "Vampire": {
+        "strength": 1,
+        "inteligence": 1,
+        "charisma": 2,
+        "user_hp": 100,
+    },
+}
+
+CLASS_ALIASES = {
+    "Berserker": "Knight",
+}
+
+
 @ensure_csrf_cookie
 def set_csrf_token(request):
     """
@@ -64,6 +90,10 @@ def register_user(request):
         password=make_password(password),
         user_class="",  # Default empty class until user selects one
     )
+
+    # Keep signup and login behavior aligned so authenticated setup pages work.
+    request.session["user_id"] = user.user_id
+    request.session.save()
 
     return Response(
         {
@@ -133,6 +163,7 @@ def logout_user(request):
 @custom_auth_required
 def choose_class(request):
     selected_class = request.data.get("user_class")
+    selected_class = CLASS_ALIASES.get(selected_class, selected_class)
 
     if not selected_class:
         return Response({"error": "No class provided"}, status=400)
@@ -140,33 +171,16 @@ def choose_class(request):
     # Get user from custom auth
     user = request.custom_user
 
-    # update class
-    user.user_class = selected_class
-
-    # starter stats depending on class
-    if selected_class == "Berserker":
-        user.level = 0
-        user.strength = 2
-        user.inteligence = 1
-        user.charisma = 1
-        user.user_hp = 100
-    elif selected_class == "Mage":
-        user.level = 0
-        user.strength = 1
-        user.inteligence = 2
-        user.charisma = 1
-        user.user_hp = 100
-
-    elif selected_class == "Vampire":
-        user.level = 0
-        user.strength = 1
-        user.inteligence = 1
-        user.charisma = 2
-        user.user_hp = 100
-
-    else:
+    starting_stats = CLASS_STARTING_STATS.get(selected_class)
+    if not starting_stats:
         return Response({"error": "Invalid class"}, status=400)
 
+    user.user_class = selected_class
+    user.level = 0
+    user.strength = starting_stats["strength"]
+    user.inteligence = starting_stats["inteligence"]
+    user.charisma = starting_stats["charisma"]
+    user.user_hp = starting_stats["user_hp"]
     user.save()
 
     return Response({"message": "Class selected", "class": user.user_class})
