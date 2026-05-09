@@ -188,6 +188,30 @@ def choose_class(request):
 
     return Response({"message": "Class selected", "class": user.user_class})
 
+@api_view(["POST"])
+@custom_auth_required
+def start_current_fight(request):
+    user = request.custom_user
+
+    if CurrentFight.objects.filter(user_id=user).exists():
+        return Response({"error": "Already in a fight"}, status=400)
+
+    # For simplicity, always fight the same boss for now
+    boss, _ = Bosses.objects.get_or_create(
+        boss_id=request.data.get("boss_id")
+    )
+
+    current_fight = CurrentFight.objects.create(user_id=user, boss_id=boss, seconds_left=300)
+
+    return Response(
+        {
+            "message": "Fight started",
+            "fight_id": current_fight.fight_id,
+            "boss_name": boss.boss_name,
+            "seconds_left": current_fight.seconds_left,
+        }
+    )
+
 
 @api_view(["GET", "POST"])
 def test_ai(request):
@@ -293,111 +317,47 @@ def update_duty_status(request, duty_id):
     )
 
 
-# # Ai Functionality
-# client = OpenAI(
-#     base_url="https://openrouter.ai/api/v1",
-#     api_key=os.getenv("OPENROUTER_API_KEY"),
-# )
+api_view(["GET"])
+@custom_auth_required
+def get_user_info(request):
+    user = request.custom_user
+    duties = Duties.objects.filter(user_id=user.user_id).values(
+        "duty_id", "description", "strength", "intelligence", "charisma", "status"
+    )
+    habits = Habits.objects.filter(user_id=user.user_id).values(
+        "habit_id", "description", "strength", "intelligence", "charisma", "status"
+    )
+    current_fight = CurrentFight.objects.filter(user_id=user.user_id).values(
+        "fight_id", "boss_id", "seconds_left"
+    ).first()
 
-# DIFFICULTY_CAPS = {
-#     "trivial": 3,
-#     "easy": 5,
-#     "medium": 10,
-#     "hard": 20,
-#     "legendary": 35,
-# }
-
-
-# def clamp(value, minimum, maximum):
-#     return max(minimum, min(value, maximum))
-
-
-# def normalize_stats(stats, max_total):
-#     """
-#     Ensures total stat gain does not exceed max_total.
-#     """
-
-#     total = sum(stats.values())
-
-#     if total <= max_total:
-#         return stats
-
-#     scale = max_total / total
-
-#     normalized = {key: max(0, round(value * scale)) for key, value in stats.items()}
-
-#     return normalized
+    return Response(
+        {
+            "username": user.username,
+            "user_class": user.user_class,
+            "level": user.level,
+            "strength": user.strength,
+            "intelligence": user.inteligence,
+            "charisma": user.charisma,
+            "user_hp": user.user_hp,
+            "duties": list(duties),
+            "habits": list(habits),
+            "current_fight": current_fight,
+        }
+    )
 
 
-# def generate_task_rewards(task_title, boss_max_hp):
-#     """
-#     Generates balanced RPG stats for a task using OpenRouter AI.
-#     """
+@api_view(["POST"])
+@custom_auth_required
+def remove_duty(request):
+    user = request.custom_user
+    duty_id = request.data.get("duty_id")
 
-#     prompt = f"""
-#     You are balancing rewards for an RPG productivity app.
+    try:
+        duty = Duties.objects.get(duty_id=duty_id, user_id=user.user_id)
+    except Duties.DoesNotExist:
+        return Response({"error": "Duty not found"}, status=404)
 
-#     Analyze this task:
-#     "{task_title}"
+    duty.delete()
 
-#     Return ONLY valid JSON.
-
-#     Format:
-#     {{
-#         "difficulty": "trivial/easy/medium/hard/legendary",
-#         "strength": number,
-#         "intelligence": number,
-#         "charisma": number
-#     }}
-
-#     Rules:
-#     - Small daily tasks should have low rewards
-#     - Harder tasks should reward more
-#     - Strength = physical effort
-#     - Intelligence = mental effort
-#     - Charisma = social/confidence effort
-#     - Keep values realistic
-#     """
-
-#     completion = client.chat.completions.create(
-#         model="openai/gpt-4.1-mini",
-#         messages=[
-#             {"role": "system", "content": "You are a strict JSON generator."},
-#             {"role": "user", "content": prompt},
-#         ],
-#         temperature=0.3,
-#     )
-
-#     raw = completion.choices[0].message.content
-
-#     try:
-#         data = json.loads(raw)
-#     except json.JSONDecodeError:
-#         raise ValueError("AI returned invalid JSON")
-
-#     difficulty = data.get("difficulty", "easy").lower()
-
-#     max_total = DIFFICULTY_CAPS.get(difficulty, 5)
-
-#     stats = {
-#         "strength": clamp(int(data.get("strength", 0)), 0, max_total),
-#         "intelligence": clamp(int(data.get("intelligence", 0)), 0, max_total),
-#         "charisma": clamp(int(data.get("charisma", 0)), 0, max_total),
-#     }
-
-#     # Normalize total stats
-#     stats = normalize_stats(stats, max_total)
-
-#     total_stats = sum(stats.values())
-
-#     # Prevent tasks from deleting bosses instantly
-#     boss_damage_cap = max(5, int(boss_max_hp * 0.05))
-
-#     damage = clamp(total_stats, 1, boss_damage_cap)
-
-#     return {
-#         "difficulty": difficulty,
-#         "stats": stats,
-#         "total_stats": total_stats,
-#         "boss_damage": damage,
-#     }
+    return Response({"message": "Duty removed", "duty_id": duty_id})

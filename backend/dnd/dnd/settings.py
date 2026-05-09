@@ -141,7 +141,15 @@ FRONTEND_ORIGINS = env_list(
     [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://duties-and-dragons.vercel.app",
         "https://duties-and-dragons-1gxp98t3d-daigo-kitagawas-projects.vercel.app",
+    ],
+)
+
+FRONTEND_ORIGIN_REGEXES = env_list(
+    "FRONTEND_ORIGIN_REGEXES",
+    [
+        r"^https://duties-and-dragons(?:-[a-z0-9-]+)?\.vercel\.app$",
     ],
 )
 
@@ -154,9 +162,12 @@ BACKEND_ORIGINS = env_list(
 
 # 1. Who is allowed to talk to the backend?
 CORS_ALLOWED_ORIGINS = FRONTEND_ORIGINS
+CORS_ALLOWED_ORIGIN_REGEXES = FRONTEND_ORIGIN_REGEXES
 
 # 2. Who do we trust for CSRF-protected requests? (Crucial for Django 4.0+)
-CSRF_TRUSTED_ORIGINS = FRONTEND_ORIGINS + BACKEND_ORIGINS
+CSRF_TRUSTED_ORIGINS = FRONTEND_ORIGINS + BACKEND_ORIGINS + [
+    "https://*.vercel.app",
+]
 
 # 3. Allow cookies/headers to be sent in the request
 CORS_ALLOW_CREDENTIALS = True
