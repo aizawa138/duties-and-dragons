@@ -146,9 +146,13 @@ CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SAMESITE = "None"
 
-# 7. Since SameSite=None is used, set secure cookies.
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+# 7. Since SameSite=None is used, set secure cookies only in production.
+if not DEBUG:
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+else:
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
 
 # 8. If Django is behind a proxy (Render/Railway), preserve HTTPS info.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
