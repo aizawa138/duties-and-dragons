@@ -22,9 +22,6 @@ interface ListItem {
   intelligence: number;
   charisma: number;
   completed: boolean;
-  strength: number;
-  intelligence: number;
-  charisma: number;
   deadline?: string;
 }
 
