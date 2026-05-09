@@ -12,8 +12,13 @@ urlpatterns = [
     path("api/update_duty_status/", views.update_duty_status, name="update_duty_status"),
     path("api/get_task_rewards/", views.get_task_rewards, name="get_task_rewards"),
     path("api/get_user_info/", views.get_user_info, name="get_user_info"),
-    path("api/remove_duty/", views.remove_duty, name="remove_duty"),
+    path("api/remove_duty/<int:duty_id>/", views.remove_duty, name="remove_duty"),
+    path("api/remove_habit/<int:habit_id>/", views.remove_habit, name="remove_habit"),
     path("api/setup_fight/", views.setup_fight, name="setup_fight"),
+    path("api/attack_boss/", views.attack_boss, name="attack_boss"),
+    path("api/get_task_rewards/", views.get_task_rewards, name="get_task_rewards"),
+    path("api/get_user_info/", views.get_user_info, name="get_user_info"),
+    path("api/update_duty_status/<int:duty_id>/", views.update_duty_status, name="update_duty_status"),
 ]
 
 # // Next.js side
