@@ -1,10 +1,13 @@
 from django.shortcuts import render
 from functools import wraps
+from math import ceil
 
 # Create your views here.
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
+from django.db import transaction
+from django.db.models import Sum
 from rest_framework.decorators import api_view
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.response import Response
@@ -18,6 +21,29 @@ from google import genai
 
 # api for stats
 from .services.ai_service import generate_task_rewards
+
+
+def _get_task_rewards(user_id, task_description):
+    """Helper function to get task rewards for a user"""
+    try:
+        current_fight = CurrentFight.objects.get(user_id=user_id)
+        boss_max_hp = current_fight.boss_id.boss_hp
+    except CurrentFight.DoesNotExist:
+        raise ValueError("No current fight")
+
+    if not task_description:
+        raise ValueError("task_description is required")
+
+    try:
+        rewards = generate_task_rewards(task_description, boss_max_hp)
+    except ValueError as exc:
+        raise ValueError(str(exc))
+
+    return rewards
+
+
+def _is_boss_defeated(boss):
+    return boss.boss_hp <= 0
 
 
 # Custom authentication decorator for custom Users model
@@ -262,6 +288,11 @@ def create_duty(request):
         {
             "message": "Duty created",
             "duty_id": duty.duty_id,
+            "stats": {
+                "strength": strength,
+                "intelligence": intelligence,
+                "charisma": charisma,
+            },
         }
     )
 
@@ -291,6 +322,11 @@ def create_habit(request):
         {
             "message": "Habit created",
             "habit_id": habit.habit_id,
+            "stats": {
+                "strength": strength,
+                "intelligence": intelligence,
+                "charisma": charisma,
+            },
         }
     )
 
@@ -362,9 +398,8 @@ def get_user_info(request):
 
 @api_view(["POST"])
 @custom_auth_required
-def remove_duty(request):
+def remove_duty(request, duty_id):
     user = request.custom_user
-    duty_id = request.data.get("duty_id")
 
     try:
         duty = Duties.objects.get(duty_id=duty_id, user_id=user.user_id)
@@ -374,3 +409,113 @@ def remove_duty(request):
     duty.delete()
 
     return Response({"message": "Duty removed", "duty_id": duty_id})
+
+@api_view(["POST"])
+@custom_auth_required
+def remove_habit(request, habit_id):
+    user = request.custom_user
+
+    try:
+        habit = Habits.objects.get(habit_id=habit_id, user_id=user.user_id)
+    except Habits.DoesNotExist:
+        return Response({"error": "Duty not found"}, status=404)
+
+    habit.delete()
+
+    return Response({"message": "Duty removed", "habit_id": habit_id})
+
+@api_view(["POST"])
+@custom_auth_required
+def setup_fight(request):
+    user = request.custom_user
+    boss_id = request.data.get("boss_id")
+
+    if not boss_id:
+        return Response({"error": "boss_id is required"}, status=400)
+
+    if CurrentFight.objects.filter(user_id=user).exists():
+        return Response({"error": "Already in a fight"}, status=400)
+
+    # Get boss
+    try:
+        boss = Bosses.objects.get(boss_id=boss_id)
+    except Bosses.DoesNoremovetExist:
+        return Response({"error": "Boss not found"}, status=404)
+
+    current_fight = CurrentFight.objects.create(
+        user_id=user, boss_id=boss, seconds_left=300
+    )
+
+    return Response(
+        {
+            "message": "Fight started",
+            "fight_id": current_fight.fight_id,
+            "boss_id": boss.boss_id,
+        }
+    )
+
+
+# @api_view(["POST"])
+# @custom_auth_required
+# def attack_boss(request):
+#     user = request.custom_user
+
+#     try:
+#         with transaction.atomic():
+#             current_fight = CurrentFight.objects.select_for_update().get(user_id=user)
+#             boss = Bosses.objects.select_for_update().get(
+#                 boss_id=current_fight.boss_id_id
+#             )
+
+#             completed_duties = Duties.objects.select_for_update().filter(
+#                 user_id=user,
+#                 status="Completed",
+#             )
+
+#             if not completed_duties.exists():
+#                 return Response(
+#                     {"error": "No completed duties to attack with"},
+#                     status=400,
+#                 )
+
+#             if boss.boss_hp is None:
+#                 return Response({"error": "Current boss has no HP"}, status=400)
+
+#             totals = completed_duties.aggregate(
+#                 strength=Sum("strength"),
+#                 intelligence=Sum("intelligence"),
+#                 charisma=Sum("charisma"),
+#             )
+#             strength = totals["strength"] or 0.0
+#             intelligence = totals["intelligence"] or 0.0
+#             charisma = totals["charisma"] or 0.0
+#             attack_damage = ceil(strength + intelligence + charisma)
+
+#             boss.boss_hp = max(0, boss.boss_hp - attack_damage)
+#             boss.save(update_fields=["boss_hp"])
+
+#             used_duty_count = completed_duties.update(status="Used")
+#             boss_defeated = _is_boss_defeated(boss)
+
+#     except CurrentFight.DoesNotExist:
+#         return Response({"error": "No current fight"}, status=404)
+#     except Bosses.DoesNotExist:
+#         return Response({"error": "Boss not found"}, status=404)
+
+#     return Response(
+#         {
+#             "message": "Attack complete",
+#             "fight_id": current_fight.fight_id,
+#             "boss_id": boss.boss_id,
+#             "boss_hp": boss.boss_hp,
+#             "boss_defeated": boss_defeated,
+#             "attack_damage": attack_damage,
+#             "used_duty_count": used_duty_count,
+#             "stats": {
+#                 "strength": strength,
+#                 "intelligence": intelligence,
+#                 "charisma": charisma,
+#             },
+#         }
+#     )
+
