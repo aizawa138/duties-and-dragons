@@ -125,12 +125,11 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     });
     const data = await response.json();
     setStrength(data.stats.strength);
-    setIntelligence(data.stats.inteligence);
+    setIntelligence(data.stats.intelligence);
     setCharisma(data.stats.charisma);
 
     setTasks((prev) => prev.filter((task) => !task.completed));
     setShake(true);
-
   };
 
   useEffect(() => {
@@ -152,9 +151,9 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
 
       const data = await response.json();
       setUserInfo(data);
-      setStrength(data.status.strength);
-      setIntelligence(data.status.intelligence);
-      setCharisma(data.status.charisma);
+      setStrength(data.stats.strength);
+      setIntelligence(data.stats.intelligence);
+      setCharisma(data.stats.charisma);
       setTasks(mapDuties(data.duties));
       setHabits(mapHabits(data.habits));
     };
@@ -194,7 +193,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
                   : charisma
               }
               hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
-              level={userInfo?.level ? userInfo?.level : 1} 
+              level={userInfo?.level ? userInfo?.level : 1}
             />
           </div>
           <div className="col-span-2">
@@ -209,12 +208,19 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             <AttackButton onAttack={handleAttack} />
           </div>
 
-          <div className={`col-span-2 ${shake ? "animate-shake" : ""}`} onAnimationEnd={() => setShake(false)}>
-            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1}/>
+          <div
+            className={`col-span-2 ${shake ? "animate-shake" : ""}`}
+            onAnimationEnd={() => setShake(false)}
+          >
+            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1} />
           </div>
 
           <div className="col-span-1">
-            <EnemyStats hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 100} id={bossInfo?.boss_id ? bossInfo?.boss_id : 1} time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 6} />
+            <EnemyStats
+              hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 100}
+              id={bossInfo?.boss_id ? bossInfo?.boss_id : 1}
+              time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 6}
+            />
           </div>
 
           <div className="col-span-5">
