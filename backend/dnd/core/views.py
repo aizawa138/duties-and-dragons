@@ -188,6 +188,7 @@ def choose_class(request):
 
     return Response({"message": "Class selected", "class": user.user_class})
 
+
 @api_view(["POST"])
 @custom_auth_required
 def start_current_fight(request):
@@ -197,11 +198,11 @@ def start_current_fight(request):
         return Response({"error": "Already in a fight"}, status=400)
 
     # For simplicity, always fight the same boss for now
-    boss, _ = Bosses.objects.get_or_create(
-        boss_id=request.data.get("boss_id")
-    )
+    boss, _ = Bosses.objects.get_or_create(boss_id=request.data.get("boss_id"))
 
-    current_fight = CurrentFight.objects.create(user_id=user, boss_id=boss, seconds_left=300)
+    current_fight = CurrentFight.objects.create(
+        user_id=user, boss_id=boss, seconds_left=300
+    )
 
     return Response(
         {
@@ -213,7 +214,7 @@ def start_current_fight(request):
     )
 
 
-
+@custom_auth_required
 @api_view(["GET", "POST"])
 def get_task_rewards(request):
     task_description = request.query_params.get("task_description") or request.data.get(
@@ -322,6 +323,8 @@ def update_duty_status(request, duty_id):
 
 
 api_view(["POST"])
+
+
 @custom_auth_required
 def get_user_info(request):
     user = request.custom_user
@@ -332,9 +335,11 @@ def get_user_info(request):
     habits = Habits.objects.filter(user_id=user_id).values(
         "habit_id", "description", "strength", "intelligence", "charisma", "status"
     )
-    current_fight = CurrentFight.objects.filter(user_id=user_id).values(
-        "fight_id", "boss_id", "seconds_left"
-    ).first()
+    current_fight = (
+        CurrentFight.objects.filter(user_id=user_id)
+        .values("fight_id", "boss_id", "seconds_left")
+        .first()
+    )
 
     return Response(
         {
@@ -366,3 +371,33 @@ def remove_duty(request):
     duty.delete()
 
     return Response({"message": "Duty removed", "duty_id": duty_id})
+
+@api_view(["POST"])
+@custom_auth_required
+def setup_fight(request):
+    user = request.custom_user
+    boss_id = request.data.get("boss_id")
+
+    if not boss_id:
+        return Response({"error": "boss_id is required"}, status=400)
+
+    if CurrentFight.objects.filter(user_id=user).exists():
+        return Response({"error": "Already in a fight"}, status=400)
+
+    # Get boss
+    try:
+        boss = Bosses.objects.get(boss_id=boss_id)
+    except Bosses.DoesNotExist:
+        return Response({"error": "Boss not found"}, status=404)
+
+    current_fight = CurrentFight.objects.create(
+        user_id=user, boss_id=boss, seconds_left=300
+    )
+
+    return Response(
+        {
+            "message": "Fight started",
+            "fight_id": current_fight.fight_id,
+            "boss_id": boss.boss_id,
+        }
+    )
