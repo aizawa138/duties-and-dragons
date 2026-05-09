@@ -454,68 +454,10 @@ def setup_fight(request):
         }
     )
 
-
-# @api_view(["POST"])
-# @custom_auth_required
-# def attack_boss(request):
-#     user = request.custom_user
-
-#     try:
-#         with transaction.atomic():
-#             current_fight = CurrentFight.objects.select_for_update().get(user_id=user)
-#             boss = Bosses.objects.select_for_update().get(
-#                 boss_id=current_fight.boss_id_id
-#             )
-
-#             completed_duties = Duties.objects.select_for_update().filter(
-#                 user_id=user,
-#                 status="Completed",
-#             )
-
-#             if not completed_duties.exists():
-#                 return Response(
-#                     {"error": "No completed duties to attack with"},
-#                     status=400,
-#                 )
-
-#             if boss.boss_hp is None:
-#                 return Response({"error": "Current boss has no HP"}, status=400)
-
-#             totals = completed_duties.aggregate(
-#                 strength=Sum("strength"),
-#                 intelligence=Sum("intelligence"),
-#                 charisma=Sum("charisma"),
-#             )
-#             strength = totals["strength"] or 0.0
-#             intelligence = totals["intelligence"] or 0.0
-#             charisma = totals["charisma"] or 0.0
-#             attack_damage = ceil(strength + intelligence + charisma)
-
-#             boss.boss_hp = max(0, boss.boss_hp - attack_damage)
-#             boss.save(update_fields=["boss_hp"])
-
-#             used_duty_count = completed_duties.update(status="Used")
-#             boss_defeated = _is_boss_defeated(boss)
-
-#     except CurrentFight.DoesNotExist:
-#         return Response({"error": "No current fight"}, status=404)
-#     except Bosses.DoesNotExist:
-#         return Response({"error": "Boss not found"}, status=404)
-
-#     return Response(
-#         {
-#             "message": "Attack complete",
-#             "fight_id": current_fight.fight_id,
-#             "boss_id": boss.boss_id,
-#             "boss_hp": boss.boss_hp,
-#             "boss_defeated": boss_defeated,
-#             "attack_damage": attack_damage,
-#             "used_duty_count": used_duty_count,
-#             "stats": {
-#                 "strength": strength,
-#                 "intelligence": intelligence,
-#                 "charisma": charisma,
-#             },
-#         }
-#     )
-
+@api_view(["GET"])
+def leaderboard(request):
+    top_users = (
+        Users.objects.order_by("-level", "-exp")
+        .values("username", "level", "exp")[:5]
+    )
+    return Response({"leaderboard": list(top_users)})
