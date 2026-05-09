@@ -77,7 +77,6 @@ export default function Tabs({
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken,
       },
-      body: JSON.stringify({ status: "Active" }),
     });
     console.log(response);
   };
