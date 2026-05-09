@@ -20,25 +20,6 @@ from google import genai
 from .services.ai_service import generate_task_rewards
 
 
-def _get_task_rewards(user_id, task_description):
-    """Helper function to get task rewards for a user"""
-    try:
-        current_fight = CurrentFight.objects.get(user_id=user_id)
-        boss_max_hp = current_fight.boss_id.boss_hp
-    except CurrentFight.DoesNotExist:
-        raise ValueError("No current fight")
-
-    if not task_description:
-        raise ValueError("task_description is required")
-
-    try:
-        rewards = generate_task_rewards(task_description, boss_max_hp)
-    except ValueError as exc:
-        raise ValueError(str(exc))
-
-    return rewards
-
-
 # Custom authentication decorator for custom Users model
 def custom_auth_required(func):
     @wraps(func)
@@ -207,7 +188,6 @@ def choose_class(request):
 
     return Response({"message": "Class selected", "class": user.user_class})
 
-
 @api_view(["POST"])
 @custom_auth_required
 def start_current_fight(request):
@@ -217,11 +197,11 @@ def start_current_fight(request):
         return Response({"error": "Already in a fight"}, status=400)
 
     # For simplicity, always fight the same boss for now
-    boss, _ = Bosses.objects.get_or_create(boss_id=request.data.get("boss_id"))
-
-    current_fight = CurrentFight.objects.create(
-        user_id=user, boss_id=boss, seconds_left=300
+    boss, _ = Bosses.objects.get_or_create(
+        boss_id=request.data.get("boss_id")
     )
+
+    current_fight = CurrentFight.objects.create(user_id=user, boss_id=boss, seconds_left=300)
 
     return Response(
         {
@@ -233,18 +213,24 @@ def start_current_fight(request):
     )
 
 
-@custom_auth_required
+
 @api_view(["GET", "POST"])
 def get_task_rewards(request):
     task_description = request.query_params.get("task_description") or request.data.get(
         "task_description"
     )
-    user_id = request.session.get("user_id")
+    try:
+        current_fight = CurrentFight.objects.get(user_id=request.session.get("user_id"))
+        boss_max_hp = current_fight.boss_id.boss_hp
+    except CurrentFight.DoesNotExist:
+        return Response({"error": "No current fight"}, status=400)
+    if not task_description:
+        return Response({"error": "task_description is required"}, status=400)
 
     try:
-        rewards = _get_task_rewards(user_id, task_description)
+        rewards = generate_task_rewards(task_description, boss_max_hp)
     except ValueError as exc:
-        return Response({"error": str(exc)}, status=400)
+        return Response({"error": str(exc)}, status=502)
 
     return Response({"rewards": rewards})
 
@@ -252,28 +238,24 @@ def get_task_rewards(request):
 @api_view(["POST"])
 @custom_auth_required
 def create_duty(request):
-    user = request.custom_user
-    task_description = request.data.get("task_description")
+    user_id = request.session["user_id"]
+    description = request.data.get("description")
+    rewards = get_task_rewards(request)
+    strength = rewards.get("strength", 0.0)
+    intelligence = rewards.get("intelligence", 0.0)
+    charisma = rewards.get("charisma", 0.0)
+    deadline = request.data.get("deadline")
 
-    if not task_description:
+    if not description or not deadline:
         return Response({"error": "Missing fields"}, status=400)
 
-    try:
-        rewards = _get_task_rewards(user.user_id, task_description=task_description)
-    except ValueError as exc:
-        return Response({"error": str(exc)}, status=400)
-
-    stats = rewards.get("stats", {})
-    strength = stats.get("strength", 0.0)
-    intelligence = stats.get("intelligence", 0.0)
-    charisma = stats.get("charisma", 0.0)
-
     duty = Duties.objects.create(
-        user_id=user,
-        description=task_description,
+        user_id=user_id,
+        description=description,
         strength=strength,
         intelligence=intelligence,
         charisma=charisma,
+        deadline=deadline,
     )
 
     return Response(
@@ -287,25 +269,19 @@ def create_duty(request):
 @api_view(["POST"])
 @custom_auth_required
 def create_habit(request):
-    user = request.custom_user
-    task_description = request.data.get("task_description")  # Use description as task_description
+    user_id = request.session["user_id"]
+    description = request.data.get("description")
+    rewards = get_task_rewards(request)
+    strength = rewards.get("strength", 0.0)
+    intelligence = rewards.get("intelligence", 0.0)
+    charisma = rewards.get("charisma", 0.0)
 
-    if not task_description:
+    if not description:
         return Response({"error": "Missing fields"}, status=400)
 
-    try:
-        rewards = _get_task_rewards(user.user_id, task_description)
-    except ValueError as exc:
-        return Response({"error": str(exc)}, status=400)
-
-    stats = rewards.get("stats", {})
-    strength = stats.get("strength", 0.0)
-    intelligence = stats.get("intelligence", 0.0)
-    charisma = stats.get("charisma", 0.0)
-
     habit = Habits.objects.create(
-        user_id=user,
-        description=task_description,
+        user_id=user_id,
+        description=description,
         strength=strength,
         intelligence=intelligence,
         charisma=charisma,
@@ -345,24 +321,26 @@ def update_duty_status(request, duty_id):
     )
 
 
-api_view(["POST"])
-
-
+@api_view(["GET"])
 @custom_auth_required
 def get_user_info(request):
     user = request.custom_user
     user_id = request.session.get("user_id")
     duties = Duties.objects.filter(user_id=user_id).values(
-        "duty_id", "description", "strength", "intelligence", "charisma", "status"
+        "duty_id",
+        "description",
+        "strength",
+        "intelligence",
+        "charisma",
+        "status",
+        "deadline",
     )
     habits = Habits.objects.filter(user_id=user_id).values(
         "habit_id", "description", "strength", "intelligence", "charisma", "status"
     )
-    current_fight = (
-        CurrentFight.objects.filter(user_id=user_id)
-        .values("fight_id", "boss_id", "seconds_left")
-        .first()
-    )
+    current_fight = CurrentFight.objects.filter(user_id=user_id).values(
+        "fight_id", "boss_id", "seconds_left"
+    ).first()
 
     return Response(
         {
@@ -396,33 +374,3 @@ def remove_duty(request):
     duty.delete()
 
     return Response({"message": "Duty removed", "duty_id": duty_id})
-
-@api_view(["POST"])
-@custom_auth_required
-def setup_fight(request):
-    user = request.custom_user
-    boss_id = request.data.get("boss_id")
-
-    if not boss_id:
-        return Response({"error": "boss_id is required"}, status=400)
-
-    if CurrentFight.objects.filter(user_id=user).exists():
-        return Response({"error": "Already in a fight"}, status=400)
-
-    # Get boss
-    try:
-        boss = Bosses.objects.get(boss_id=boss_id)
-    except Bosses.DoesNotExist:
-        return Response({"error": "Boss not found"}, status=404)
-
-    current_fight = CurrentFight.objects.create(
-        user_id=user, boss_id=boss, seconds_left=300
-    )
-
-    return Response(
-        {
-            "message": "Fight started",
-            "fight_id": current_fight.fight_id,
-            "boss_id": boss.boss_id,
-        }
-    )
