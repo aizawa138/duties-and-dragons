@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { crossaintOne } from "@/public/fonts";
 
-export default function Logo() {
+type LogoProps = {
+  href?: string;
+};
+
+export default function Logo({ href = "/" }: LogoProps) {
   return (
-    <Link href="/" className={`${crossaintOne.className} text-3xl text-accent`}>
+    <Link href={href} className={`${crossaintOne.className} text-3xl text-accent`}>
       Duties & Dragons
     </Link>
   );
