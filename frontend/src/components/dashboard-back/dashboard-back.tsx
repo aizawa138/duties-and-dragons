@@ -152,12 +152,6 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
               cha={userInfo?.charisma ? userInfo?.charisma : 0}
               hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
             />
-            <PlayerStats
-              str={userInfo?.strength ? userInfo?.strength : 0}
-              int={userInfo?.intelligence ? userInfo?.intelligence : 0}
-              cha={userInfo?.charisma ? userInfo?.charisma : 0}
-              hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
-            />
           </div>
           <div className="col-span-2">
             <Player classname={userInfo?.user_class ? userInfo?.user_class : ""} username={userInfo?.username ? userInfo?.username : "Player"} />
@@ -173,7 +167,6 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
           </div>
 
           <div className="col-span-1">
-            <EnemyStats hp={100} weakness="STR" />
             <EnemyStats hp={100} weakness="STR" />
           </div>
 
