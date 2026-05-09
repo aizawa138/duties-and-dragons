@@ -5,9 +5,16 @@ type CardProps = {
   role: string;
   onClick: (value: string) => void;
   isSelected?: boolean;
+  description: string;
 };
 
-export default function Card({ src, role, onClick, isSelected }: CardProps) {
+export default function Card({
+  src,
+  role,
+  onClick,
+  isSelected,
+  description,
+}: CardProps) {
   const selectedClasses = isSelected ? "scale-[1.02] ring-2 ring-accent" : "";
   return (
     <div
@@ -23,7 +30,7 @@ export default function Card({ src, role, onClick, isSelected }: CardProps) {
         className={`transition mb-2 ${isSelected ? "scale-110" : "group-hover:scale-110"}`}
       />
       <h1 className="text-3xl text-background mb-2 font-bold">{role}</h1>
-      <p className="text-gray-400">Good morning to 9/5</p>
+      <p className="text-gray-400">{description}</p>
     </div>
   );
 }
