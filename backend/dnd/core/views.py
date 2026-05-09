@@ -317,7 +317,7 @@ def update_duty_status(request, duty_id):
     )
 
 
-api_view(["GET"])
+api_view(["POST"])
 @custom_auth_required
 def get_user_info(request):
     user = request.custom_user
