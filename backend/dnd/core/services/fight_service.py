@@ -5,6 +5,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from ..models import Bosses, CurrentFight
+from .progression_service import get_scaled_boss_hp
 
 
 BOSS_ROTATION_IDS = (1, 2, 3)
@@ -37,11 +38,12 @@ def get_boss_for_rotation(boss_id):
 def create_current_fight(user, boss=None, now=None):
     now = now or timezone.now()
     boss = boss or get_boss_for_rotation(BOSS_ROTATION_IDS[0])
+    boss_hp = get_scaled_boss_hp(boss.boss_hp, user)
 
     return CurrentFight.objects.create(
         user_id=user,
         boss_id=boss,
-        current_boss_hp=boss.boss_hp,
+        current_boss_hp=boss_hp,
         seconds_left=FIGHT_DURATION_SECONDS,
         started_at=now,
         ends_at=get_fight_ends_at(now),
@@ -50,9 +52,10 @@ def create_current_fight(user, boss=None, now=None):
 
 def reset_current_fight(current_fight, boss, now=None):
     now = now or timezone.now()
+    boss_hp = get_scaled_boss_hp(boss.boss_hp, current_fight.user_id)
 
     current_fight.boss_id = boss
-    current_fight.current_boss_hp = boss.boss_hp
+    current_fight.current_boss_hp = boss_hp
     current_fight.seconds_left = FIGHT_DURATION_SECONDS
     current_fight.started_at = now
     current_fight.ends_at = get_fight_ends_at(now)
@@ -120,6 +123,7 @@ def serialize_current_fight(current_fight, now=None):
         "fight_id": current_fight.fight_id,
         "boss_id": current_fight.boss_id_id,
         "boss_name": current_fight.boss_id.boss_name,
+        "base_boss_hp": current_fight.boss_id.boss_hp,
         "boss_hp": current_fight.current_boss_hp,
         "seconds_left": get_seconds_left(current_fight, now=now),
         "started_at": current_fight.started_at,

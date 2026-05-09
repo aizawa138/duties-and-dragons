@@ -2,8 +2,13 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Bosses, CurrentFight, Duties, Users
+from .models import Bosses, CurrentFight, Duties, Habits, Users
 from .services.fight_service import ensure_current_fight
+from .services.progression_service import (
+    calculate_user_exp,
+    calculate_user_level,
+    get_scaled_boss_hp,
+)
 
 
 class AuthFlowTests(TestCase):
@@ -49,7 +54,7 @@ class BossAttackTests(TestCase):
             user_class="Knight",
         )
         boss = Bosses.objects.create(
-            boss_hp=6,
+            boss_hp=10,
             weakness="focus",
             boss_name="Deadline Drake",
         )
@@ -70,6 +75,14 @@ class BossAttackTests(TestCase):
             charisma=99,
             status="Active",
         )
+        Habits.objects.create(
+            user_id=user,
+            description="daily practice",
+            strength=1,
+            intelligence=1,
+            charisma=2,
+            status="Completed",
+        )
         session = self.client.session
         session["user_id"] = user.user_id
         session.save()
@@ -80,12 +93,18 @@ class BossAttackTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["attack_damage"], 6)
+        self.assertEqual(response.json()["attack_damage"], 10)
         self.assertEqual(response.json()["boss_hp"], 0)
         self.assertTrue(response.json()["boss_defeated"])
 
         current_fight = CurrentFight.objects.get(user_id=user)
         self.assertEqual(current_fight.current_boss_hp, 0)
+        user.refresh_from_db()
+        self.assertEqual(user.strength, 3)
+        self.assertEqual(user.inteligence, 4)
+        self.assertEqual(user.charisma, 3)
+        self.assertEqual(user.exp, 10)
+        self.assertEqual(user.level, 1)
         self.assertEqual(
             Duties.objects.get(description="finish report").status,
             "Used",
@@ -93,6 +112,10 @@ class BossAttackTests(TestCase):
         self.assertEqual(
             Duties.objects.get(description="still pending").status,
             "Active",
+        )
+        self.assertEqual(
+            Habits.objects.get(description="daily practice").status,
+            "Used",
         )
 
 
@@ -136,3 +159,23 @@ class FightRotationTests(TestCase):
         self.assertEqual(current_fight.boss_id, boss_2)
         self.assertEqual(current_fight.current_boss_hp, boss_2.boss_hp)
         self.assertGreater(current_fight.seconds_left, 0)
+
+
+class ProgressionTests(TestCase):
+    def test_exp_level_and_boss_hp_scaling_are_based_on_user_stats(self):
+        user = Users.objects.create(
+            username="scaler",
+            password="secret",
+            user_class="Knight",
+            strength=12,
+            inteligence=8,
+            charisma=5,
+        )
+
+        self.assertEqual(calculate_user_exp(user), 25)
+        self.assertEqual(calculate_user_level(calculate_user_exp(user)), 2)
+
+        user.exp = calculate_user_exp(user)
+        user.level = calculate_user_level(user.exp)
+
+        self.assertEqual(get_scaled_boss_hp(100, user), 120)
