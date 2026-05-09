@@ -61,21 +61,21 @@ export default function Page() {
               role="Knight"
               onClick={handleClick}
               isSelected={role === "Knight"}
-              description="Good morning"
+              description="Boosts physical strength, turning the tide of battle with raw power."
             />
             <Card
               src={mage}
               role="Mage"
               onClick={handleClick}
               isSelected={role === "Mage"}
-              description="Good night"
+              description="Harnesses the power of magic, casting devastating spells to defeat enemies."
             />
             <Card
               src={vampire}
               role="Vampire"
               onClick={handleClick}
               isSelected={role === "Vampire"}
-              description="Hi"
+              description="Enhances charisma, commanding respect and influence with a noble presence."
             />
           </div>
           <div className="flex justify-end mr-4">
