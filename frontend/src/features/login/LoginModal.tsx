@@ -19,6 +19,7 @@ export default function AuthenticationModal({
   variant,
   onAuthenticated,
 }: AuthenticationType) {
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +31,7 @@ export default function AuthenticationModal({
     if (authenticationType === "Login") {
       try {
         setError("");
+        setIsLoading(true);
         const response = await fetch(backendUrl("/api/login/"), {
           method: "POST",
           credentials: "include",
@@ -49,8 +51,10 @@ export default function AuthenticationModal({
           await response.json();
         await onAuthenticated?.();
         if (hasClass) {
+          setIsLoading(false);
           router.push(`/dashboard/${registeredUsername}`);
         } else {
+          setIsLoading(false);
           router.push(`/create/${registeredUsername}`);
         }
       } catch (error) {
@@ -59,6 +63,7 @@ export default function AuthenticationModal({
       }
     } else if (authenticationType === "Signup") {
       try {
+        setIsLoading(true);
         const response = await fetch(backendUrl("/api/register/"), {
           method: "POST",
           credentials: "include",
@@ -79,13 +84,16 @@ export default function AuthenticationModal({
 
         await onAuthenticated?.();
         if (hasClass) {
+          setIsLoading(false);
           router.push(`/dashboard/${registeredUsername}`);
         } else {
+          setIsLoading(false);
           router.push(`/create/${registeredUsername}`);
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         setError(message);
+        setIsLoading(false);
       }
     }
   };
@@ -133,8 +141,13 @@ export default function AuthenticationModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button variant={variant} size="default" onClick={handleClick}>
-              {authenticationType}
+            <Button
+              variant={variant}
+              size="default"
+              onClick={handleClick}
+              disabled={isLoading}
+            >
+              {!isLoading ? authenticationType : "Loading..."}
             </Button>
           </div>
         </Dialog.Content>
