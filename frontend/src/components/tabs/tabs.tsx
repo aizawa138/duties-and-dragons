@@ -145,6 +145,33 @@ export default function Tabs({
 
   // --- NEW DELETE FUNCTION ---
   const deleteItem = (id: number) => {
+    if (activeTab === "tasks") {
+      const handleDutyClick = async () => {
+        const csrfToken = await initializeApp();
+        await fetch(backendUrl(`/api/remove_duty/${id}/`), {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+        });
+      };
+      handleDutyClick();
+    } else {
+      const handleHabitClick = async () => {
+        const csrfToken = await initializeApp();
+        await fetch(backendUrl(`/api/remove_habit/${id}/`), {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+        });
+      };
+      handleHabitClick();
+    }
     const setter = activeTab === "tasks" ? setTasks : setHabits;
     setter((prev) => prev.filter((item) => item.id !== id));
   };
