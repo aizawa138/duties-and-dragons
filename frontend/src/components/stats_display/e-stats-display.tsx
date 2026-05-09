@@ -18,7 +18,7 @@ export default function EnemyStats({ hp, id, time_left }: StatsInfo) {
             <ul className="flex flex-col gap-5">
                 <li>HP: {hp}</li>
                 <li>Weak to: {weakness}</li>
-                <li>Time left: {time_left}</li>
+                <li>Time left: {time_left} days</li>
             </ul>
         </div>
     );
