@@ -103,7 +103,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   const [userInfo, setUserInfo] = useState<DashboardUserInfo | undefined>(
     initialUserInfo,
   );
-  const [bossInfo, setBossInfo] = useState<BossInfo | null>(null);
+  const [bossInfo] = useState<BossInfo | null>(null);
 
   // 2. Create the attack logic
   const handleAttack = () => {
@@ -154,7 +154,10 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             />
           </div>
           <div className="col-span-2">
-            <Player classname={userInfo?.user_class ? userInfo?.user_class : ""} username={userInfo?.username ? userInfo?.username : "Player"} />
+            <Player
+              classname={userInfo?.user_class ? userInfo?.user_class : ""}
+              username={userInfo?.username ? userInfo?.username : "Player"}
+            />
           </div>
 
           <div className="flex items-center col-span-1 align-middle">
