@@ -13,6 +13,7 @@ import backendUrl from "@/lib/backendUrl";
 // import { usePathname } from "next/navigation";
 import PlayerStats from "../stats_display/p-stats-display";
 import EnemyStats from "../stats_display/e-stats-display";
+import { initializeApp } from "@/lib/initializeApp";
 
 // Define the type here so it's accessible
 interface ListItem {
@@ -106,10 +107,19 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   const [bossInfo] = useState<BossInfo | null>(null);
 
   // 2. Create the attack logic
-  const handleAttack = () => {
+  const handleAttack = async () => {
     // Filter out completed duties (tasks), keep everything else
+    const csrfToken = await initializeApp();
+    await fetch(backendUrl("/api/attack_boss/"), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+    });
+
     setTasks((prev) => prev.filter((task) => !task.completed));
-    console.log("Attack! Completed duties cleared.");
   };
 
   useEffect(() => {
