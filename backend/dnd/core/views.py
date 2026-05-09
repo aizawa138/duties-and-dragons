@@ -325,19 +325,20 @@ api_view(["POST"])
 @custom_auth_required
 def get_user_info(request):
     user = request.custom_user
-    duties = Duties.objects.filter(username=user.username).values(
+    user_id = request.session.get("user_id")
+    duties = Duties.objects.filter(user_id=user_id).values(
         "duty_id", "description", "strength", "intelligence", "charisma", "status"
     )
-    habits = Habits.objects.filter(username=user.username).values(
+    habits = Habits.objects.filter(user_id=user_id).values(
         "habit_id", "description", "strength", "intelligence", "charisma", "status"
     )
-    current_fight = CurrentFight.objects.filter(username=user.username).values(
+    current_fight = CurrentFight.objects.filter(user_id=user_id).values(
         "fight_id", "boss_id", "seconds_left"
     ).first()
 
     return Response(
         {
-            "username": user.username,
+            "user_id": user.user_id,
             "user_class": user.user_class,
             "level": user.level,
             "strength": user.strength,
