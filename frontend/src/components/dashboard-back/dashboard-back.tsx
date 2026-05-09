@@ -109,6 +109,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
   const [strength, setStrength] = useState(0);
   const [intelligence, setIntelligence] = useState(0);
   const [charisma, setCharisma] = useState(0);
+  const [shake, setShake] = useState(false);
 
   // 2. Create the attack logic
   const handleAttack = async () => {
