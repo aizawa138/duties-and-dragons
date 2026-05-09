@@ -7,7 +7,7 @@ from django.utils import timezone
 class Users(models.Model):
     user_id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=100, unique=True, default=None, blank=False)
-    password = models.CharField(max_length=64, default=None)
+    password = models.CharField(max_length=128, default=None)
     # Stats
     strength = models.FloatField(default=0.0)
     inteligence = models.FloatField(default=0.0)
@@ -42,6 +42,7 @@ class CurrentFight(models.Model):
         null=False,
     )
     seconds_left = models.IntegerField(default=None)
+    current_boss_hp = models.IntegerField(default=None)
 
 
 class Duties(models.Model):
@@ -56,7 +57,7 @@ class Duties(models.Model):
     status = models.CharField(
         max_length=64, default="Active"
     )  # Active, Completed, Used
-    deadline = models.DateTimeField(default=timezone.now)
+    deadline = models.DateField(default=timezone.localdate)
 
 
 class Habits(models.Model):
@@ -74,6 +75,5 @@ class Habits(models.Model):
 class DailyResetState(models.Model):
     key = models.CharField(max_length=128, unique=True)
     last_reset_date = models.DateField()
-
 
 
