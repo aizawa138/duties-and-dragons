@@ -70,7 +70,7 @@ export default function Tabs({
   };
 
   const handleAdd = async () => {
-    if (!newItemText.trim()) return;
+    if (!newItemText.trim() || isLoading) return;
 
     const newItem: ListItem = {
       id: Date.now(),
@@ -82,9 +82,10 @@ export default function Tabs({
       deadline: newItemDeadline || undefined,
     };
 
+    setIsLoading(true);
+
     try {
       if (activeTab === "tasks") {
-        setIsLoading(true);
         const createdItem = await handleAIIntegration("/api/create_duty/", {
           description: newItemText,
           deadline: newItemDeadline,
@@ -100,9 +101,9 @@ export default function Tabs({
       setNewItemText("");
       setNewItemDeadline("");
       setIsModalOpen(false);
-      setIsLoading(false);
     } catch (error) {
       console.error("Failed to create item", error);
+    } finally {
       setIsLoading(false);
     }
   };
