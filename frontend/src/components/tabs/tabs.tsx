@@ -68,6 +68,19 @@ export default function Tabs({
     };
   };
 
+  const handleDutyClick = async (id: number) => {
+    const csrfToken = await initializeApp();
+    const response = await fetch(backendUrl(`/api/update_duty_status/${id}/`), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+    });
+    console.log(response);
+  };
+
   const handleAdd = async () => {
     if (!newItemText.trim()) return;
 
@@ -170,6 +183,7 @@ export default function Tabs({
                   ? "bg-primary/40 border-slate-900 opacity-50 grayscale-[0.5]"
                   : "bg-primary/80 border-slate-800 animate-in fade-in slide-in-from-left-2"
               }`}
+            onClick={() => handleDutyClick(item.id)}
           >
             <div className="flex items-center gap-3 overflow-hidden flex-1">
               <button

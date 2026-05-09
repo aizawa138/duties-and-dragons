@@ -128,6 +128,8 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     setCharisma(data.stats.charisma);
 
     setTasks((prev) => prev.filter((task) => !task.completed));
+    setShake(true);
+
   };
 
   useEffect(() => {
@@ -157,6 +159,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     };
     fetchData();
   }, [initialUserInfo]);
+  console.log(bossInfo);
 
   return (
     <div
@@ -204,12 +207,12 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             <AttackButton onAttack={handleAttack} />
           </div>
 
-          <div className="col-span-2">
-            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1} />
+          <div className={`col-span-2 ${shake ? "animate-shake" : ""}`} onAnimationEnd={() => setShake(false)}>
+            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1}/>
           </div>
 
           <div className="col-span-1">
-            <EnemyStats hp={100} weakness="STR" />
+            <EnemyStats hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 0} id={bossInfo?.boss_id ? bossInfo?.boss_id : 1} time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 1} />
           </div>
 
           <div className="col-span-5">
