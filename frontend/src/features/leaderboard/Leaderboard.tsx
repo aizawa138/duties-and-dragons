@@ -3,8 +3,8 @@ import { alikeAngular, crossaintOne } from "@/public/fonts";
 export default function Leaderboard() {
   return (
     <div className={`w-full h-full max-w-sm mx-auto rounded-lg border border-slate-800 bg-slate-950/90 p-3 shadow-2xl shadow-slate-950/50 backdrop-blur-xl ${alikeAngular.className}`}>
-      <h1 className={`text-xl font-bold mb-2 text-accent ${crossaintOne.className}`}>Leaderboard</h1>
-      <p className="text-secondary mb-3 text-xs">Top players and their ranks.</p>
+      <h1 className={`text-xl font-bold mb-2 text-accent text-center ${crossaintOne.className}`}>Leaderboard</h1>
+      <p className="text-secondary mb-3 text-xs text-center">Top players and their ranks.</p>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-800 bg-slate-900/80 p-2">

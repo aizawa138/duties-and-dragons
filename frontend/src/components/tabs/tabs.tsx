@@ -57,6 +57,12 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
     );
   };
 
+  // --- NEW DELETE FUNCTION ---
+  const deleteItem = (id: number) => {
+    const setter = activeTab === "tasks" ? setTasks : setHabits;
+    setter((prev) => prev.filter((item) => item.id !== id));
+  };
+
   const renderContent = () => {
     const currentList = activeTab === "tasks" ? tasks : habits;
 
@@ -75,14 +81,14 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
         {currentList.map((item) => (
           <div
             key={item.id}
-            className={`flex items-center justify-between gap-4 rounded-lg border p-3 transition-all duration-300 shrink-0 
+            className={`group flex items-center justify-between gap-3 rounded-lg border p-3 transition-all duration-300 shrink-0 
               ${
                 item.completed
                   ? "bg-primary/40 border-slate-900 opacity-50 grayscale-[0.5]"
                   : "bg-primary/80 border-slate-800 animate-in fade-in slide-in-from-left-2"
               }`}
           >
-            <div className="flex items-center gap-3 overflow-hidden">
+            <div className="flex items-center gap-3 overflow-hidden flex-1">
               <button
                 onClick={() => toggleComplete(item.id)}
                 className={`w-5 h-5 shrink-0 rounded-full border flex items-center justify-center transition-colors
@@ -95,31 +101,52 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
                 <span className="text-[10px]">✓</span>
               </button>
 
-              <span
-                className={`font-medium text-sm transition-all truncate ${
-                  item.completed
-                    ? "text-slate-500 line-through"
-                    : "text-slate-200"
-                }`}
-              >
-                {item.text}
-              </span>
+              <div className="flex flex-col truncate">
+                <span
+                  className={`font-medium text-sm transition-all truncate ${
+                    item.completed
+                      ? "text-slate-500 line-through"
+                      : "text-slate-200"
+                  }`}
+                >
+                  {item.text}
+                </span>
+                {item.deadline && (
+                  <span className="text-[10px] uppercase tracking-wider text-rose-400/80 font-medium">
+                    Due: {item.deadline}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {item.deadline && (
-              <span className="text-[10px] uppercase tracking-wider text-rose-400/80 font-medium shrink-0">
-                Due: {item.deadline}
-              </span>
-            )}
+            {/* --- DELETE BUTTON --- */}
+            <button
+              onClick={() => deleteItem(item.id)}
+              className="p-1.5 rounded-md text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+              title="Delete item"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="14" 
+                height="14" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
           </div>
         ))}
       </div>
     );
   };
 
-  // --- CRITICAL: The return starts here ---
   return (
-    <div className="w-full h-80 max-h-full rounded-xl border border-slate-800 bg-slate-950/90 shadow-2xl shadow-slate-950/50 backdrop-blur-xl flex flex-col overflow-hidden relative">
+    <div className="w-full h-80 max-h-full rounded-lg border border-slate-800 bg-slate-950/90 shadow-2xl shadow-slate-950/50 backdrop-blur-xl flex flex-col overflow-hidden relative">
       <div className="flex items-center justify-between p-2 border-b border-slate-800 bg-slate-900/50 shrink-0">
         <div className="flex gap-2 grow">
           <button
@@ -152,8 +179,8 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
           </Dialog.Trigger>
 
           <Dialog.Portal>
-            <Dialog.Overlay className="fixed backdrop-blur-xs inset-0 z-40" />
-            <Dialog.Content className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl py-8 px-4 w-[90vw] max-w-md max-h-[90vh] overflow-y-auto border border-gray-500 sm:w-[70vw] lg:w-[40vw]">
+            <Dialog.Overlay className="fixed backdrop-blur-sm inset-0 z-40 bg-black/40" />
+            <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl py-8 px-4 w-[90vw] max-w-md max-h-[90vh] overflow-y-auto border border-gray-500">
               <Dialog.Title
                 className={`text-primary text-3xl text-center font-semibold mb-4 ${crossaintOne.className}`}
               >
@@ -166,7 +193,7 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
               </Dialog.Description>
 
               <div className="flex flex-col">
-                <label htmlFor="itemName">Name</label>
+                <label htmlFor="itemName" className="text-gray-700 text-sm mb-1">Name</label>
                 <input
                   id="itemName"
                   type="text"
@@ -180,7 +207,7 @@ export default function Tabs({ tasks, setTasks, habits, setHabits }: TabsProps) 
 
                 {activeTab === "tasks" && (
                   <>
-                    <label htmlFor="itemDeadline">Deadline</label>
+                    <label htmlFor="itemDeadline" className="text-gray-700 text-sm mb-1">Deadline</label>
                     <input
                       id="itemDeadline"
                       type="date"

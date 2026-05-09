@@ -188,6 +188,30 @@ def choose_class(request):
 
     return Response({"message": "Class selected", "class": user.user_class})
 
+@api_view(["POST"])
+@custom_auth_required
+def start_current_fight(request):
+    user = request.custom_user
+
+    if CurrentFight.objects.filter(user_id=user).exists():
+        return Response({"error": "Already in a fight"}, status=400)
+
+    # For simplicity, always fight the same boss for now
+    boss, _ = Bosses.objects.get_or_create(
+        boss_id=request.data.get("boss_id")
+    )
+
+    current_fight = CurrentFight.objects.create(user_id=user, boss_id=boss, seconds_left=300)
+
+    return Response(
+        {
+            "message": "Fight started",
+            "fight_id": current_fight.fight_id,
+            "boss_name": boss.boss_name,
+            "seconds_left": current_fight.seconds_left,
+        }
+    )
+
 
 
 @api_view(["GET", "POST"])
@@ -295,3 +319,49 @@ def update_duty_status(request, duty_id):
             "new_status": duty.status,
         }
     )
+
+
+api_view(["POST"])
+@custom_auth_required
+def get_user_info(request):
+    user = request.custom_user
+    duties = Duties.objects.filter(username=user.username).values(
+        "duty_id", "description", "strength", "intelligence", "charisma", "status"
+    )
+    habits = Habits.objects.filter(username=user.username).values(
+        "habit_id", "description", "strength", "intelligence", "charisma", "status"
+    )
+    current_fight = CurrentFight.objects.filter(username=user.username).values(
+        "fight_id", "boss_id", "seconds_left"
+    ).first()
+
+    return Response(
+        {
+            "username": user.username,
+            "user_class": user.user_class,
+            "level": user.level,
+            "strength": user.strength,
+            "intelligence": user.inteligence,
+            "charisma": user.charisma,
+            "user_hp": user.user_hp,
+            "duties": list(duties),
+            "habits": list(habits),
+            "current_fight": current_fight,
+        }
+    )
+
+
+@api_view(["POST"])
+@custom_auth_required
+def remove_duty(request):
+    user = request.custom_user
+    duty_id = request.data.get("duty_id")
+
+    try:
+        duty = Duties.objects.get(duty_id=duty_id, user_id=user.user_id)
+    except Duties.DoesNotExist:
+        return Response({"error": "Duty not found"}, status=404)
+
+    duty.delete()
+
+    return Response({"message": "Duty removed", "duty_id": duty_id})
