@@ -193,6 +193,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
                   : charisma
               }
               hp={userInfo?.user_hp ? userInfo?.user_hp : 0}
+              level={userInfo?.level ? userInfo?.level : 1} 
             />
           </div>
           <div className="col-span-2">
@@ -212,7 +213,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
           </div>
 
           <div className="col-span-1">
-            <EnemyStats hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 0} id={bossInfo?.boss_id ? bossInfo?.boss_id : 1} time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 1} />
+            <EnemyStats hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 100} id={bossInfo?.boss_id ? bossInfo?.boss_id : 1} time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 6} />
           </div>
 
           <div className="col-span-5">
