@@ -104,12 +104,14 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     initialUserInfo,
   );
   const [bossInfo, setBossInfo] = useState<BossInfo | null>(null);
+  const [shake, setShake] = useState(false);
 
   // 2. Create the attack logic
   const handleAttack = () => {
     // Filter out completed duties (tasks), keep everything else
     setTasks((prev) => prev.filter((task) => !task.completed));
     console.log("Attack! Completed duties cleared.");
+    setShake(true);
   };
 
   useEffect(() => {
@@ -136,6 +138,7 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
     };
     fetchData();
   }, [initialUserInfo]);
+  console.log(bossInfo);
 
   return (
     <div
@@ -162,12 +165,12 @@ export default function DashboardBack({ initialUserInfo }: DashboardBackProps) {
             <AttackButton onAttack={handleAttack} />
           </div>
 
-          <div className="col-span-2">
-            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1} />
+          <div className={`col-span-2 ${shake ? "animate-shake" : ""}`} onAnimationEnd={() => setShake(false)}>
+            <Enemy s={bossInfo?.boss_id ? bossInfo?.boss_id : 1}/>
           </div>
 
           <div className="col-span-1">
-            <EnemyStats hp={100} weakness="STR" />
+            <EnemyStats hp={bossInfo?.current_boss_hp ? bossInfo?.current_boss_hp : 0} id={bossInfo?.boss_id ? bossInfo?.boss_id : 1} time_left={bossInfo?.seconds_left ? bossInfo?.seconds_left : 1} />
           </div>
 
           <div className="col-span-5">
