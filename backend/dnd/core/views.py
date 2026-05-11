@@ -533,7 +533,7 @@ def remove_duty(request, duty_id):
     user = request.custom_user
 
     try:
-        duty = Duties.objects.get(duty_id=duty_id, user_id=user.user_id)
+        duty = Duties.objects.get(duty_id=duty_id,23 user_id=user.user_id)
     except Duties.DoesNotExist:
         return Response({"error": "Duty not found"}, status=404)
 
